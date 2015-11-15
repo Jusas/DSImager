@@ -1,0 +1,34 @@
+﻿<views:BaseView x:TypeArguments="viewModels:ConnectDialogViewModel" x:Class="DSImager.Application.Views.ConnectDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:dsImager="clr-namespace:DSImager"
+        xmlns:viewModels="clr-namespace:DSImager.ViewModels"
+        xmlns:application="clr-namespace:DSImager.Application"
+        xmlns:views="clr-namespace:DSImager.Application.Views"
+        Title="Connect to a camera" Height="184" Width="474" 
+        Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" ResizeMode="NoResize">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="61*"/>
+            <RowDefinition Height="138*"/>
+        </Grid.RowDefinitions>
+        <TextBox x:Name="SelectedCameraTextField" HorizontalAlignment="Left" Height="26" Margin="119,11,0,0" TextWrapping="Wrap" Text="{Binding SelectedDeviceId}" VerticalAlignment="Top" Width="337" IsEnabled="False"/>
+        <Label Content="Selected Camera:" Margin="10,11,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="26" Width="104"/>
+        <Button x:Name="ChooseButton" Command="{Binding ChooseCommand}" 
+                Content="Choose" HorizontalAlignment="Left" Margin="10,10,0,0" 
+                Grid.Row="1" VerticalAlignment="Top" Width="446" Height="25"
+                IsEnabled="{Binding IsUiResponsive}"/>
+        <Button x:Name="ConnectButton" Command="{Binding ConnectCameraCommand}" 
+                Content="Connect" HorizontalAlignment="Left" Margin="10,40,0,0" 
+                Grid.Row="1" VerticalAlignment="Top" Width="446" Height="25" 
+                IsEnabled="{Binding CanConnectToCamera}"/>
+        <Button x:Name="QuitButton" Content="Quit" HorizontalAlignment="Left" 
+                Margin="10,70,0,0" Grid.Row="1" VerticalAlignment="Top" 
+                Width="446" Height="25"
+                IsEnabled="{Binding IsUiResponsive}"
+                Command="{Binding QuitCommand}"/>
+
+    </Grid>
+</views:BaseView>
