@@ -71,8 +71,15 @@
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="CommandHandler.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Views\DeviceInfoDialog.xaml.cs">
+      <DependentUpon>DeviceInfoDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WpfApplication.cs" />
     <Page Include="Views\ConnectDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\DeviceInfoDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

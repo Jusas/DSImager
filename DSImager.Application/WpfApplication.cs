@@ -8,23 +8,40 @@ using DSImager.Core.Interfaces;
 
 namespace DSImager.Application
 {
+    /// <summary>
+    /// Implementation of IApplication.
+    /// Provides common application functionality.
+    /// </summary>
     class WpfApplication : IApplication
     {
 
+        //-------------------------------------------------------------------------------------------------------
+        #region FIELDS AND PROPERTIES AND EVENTS
+        //-------------------------------------------------------------------------------------------------------
+
         private System.Windows.Application _application;
         private MainWindow _mainWindow { get { return (MainWindow)_application.MainWindow; } }
-        
+
+        public event EventHandler OnAppStartUp;
+        public event EventHandler OnAppExit;
+
+        #endregion
+
+        //-------------------------------------------------------------------------------------------------------
+        #region METHODS
+        //-------------------------------------------------------------------------------------------------------
+
         public WpfApplication()
         {
             _application = System.Windows.Application.Current;
         }
+        
 
-        public event EventHandler OnAppStartUp;
-        public event EventHandler OnAppExit;
-        public event EventHandler<bool> BeforeAppExit;
         public void ExitApplication(int exitCode)
         {
-            throw new NotImplementedException();
         }
+
+        #endregion
+
     }
 }

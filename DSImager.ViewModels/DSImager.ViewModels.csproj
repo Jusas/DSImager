@@ -48,6 +48,7 @@
     <Compile Include="BaseViewModel.cs" />
     <Compile Include="CommandHandler.cs" />
     <Compile Include="ConnectDialogViewModel.cs" />
+    <Compile Include="DeviceInfoViewModel.cs" />
     <Compile Include="MainViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

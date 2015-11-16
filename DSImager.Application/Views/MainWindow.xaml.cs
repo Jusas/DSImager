@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using DSImager.ViewModels;
@@ -10,13 +12,13 @@ namespace DSImager.Application.Views
     /// </summary>
     public partial class MainWindow
     {
-        
         public MainWindow(MainViewModel viewModel)
         {            
             InitializeComponent();
             ViewModel = viewModel;
         }
-        
+
+
 
         private void OnPreviewExposureClicked(object sender, RoutedEventArgs e)
         {

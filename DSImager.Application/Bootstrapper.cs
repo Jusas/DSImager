@@ -11,6 +11,10 @@ using SimpleInjector;
 
 namespace DSImager.Application
 {
+    /// <summary>
+    /// Bootstrapper class, for registering classes to SimpleInjector.
+    /// Also registers View-ViewModel pairs to ViewProvider.
+    /// </summary>
     public static class Bootstrapper
     {
         private static IEnumerable<Type> GetAllTypesImplementingOpenGenericType(Type openGenericType, Assembly assembly)
@@ -55,6 +59,7 @@ namespace DSImager.Application
 
             var viewProvider = container.GetInstance<IViewProvider>();
             viewProvider.Register<ConnectDialog, ConnectDialogViewModel>();
+            viewProvider.Register<DeviceInfoDialog, DeviceInfoViewModel>();
 
 
             container.Verify();

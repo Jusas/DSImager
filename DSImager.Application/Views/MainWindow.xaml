@@ -7,7 +7,7 @@
         xmlns:app="clr-namespace:DSImager.Application"
         xmlns:views="clr-namespace:DSImager.Application.Views"
         x:Class="DSImager.Application.Views.MainWindow"
-        Title="DSImager" Height="768" Width="1366" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
+        Title="{Binding ViewTitle}" Height="768" Width="1366" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
     <Grid x:Name="TopLevelGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" x:Name="MainMenuItemRow"/>
@@ -38,7 +38,8 @@
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xF05A;" 
 					Margin="4,0"
-					ToolTip="Camera information"/>
+					ToolTip="Camera information"
+                        Command="{Binding OpenDeviceInfoDialogCommand}"/>
                 <!-- information about the connected camera -->
             </ToolBar>
             <ToolBar HorizontalAlignment="Left" FontSize="24">

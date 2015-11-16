@@ -32,13 +32,14 @@ namespace DSImager.ViewModels
         private ICameraService _cameraService;
 
         private readonly string _nothingSelected = "Not selected";
+        
         private string _selectedDeviceId;
         public string SelectedDeviceId
         {
             get { return _selectedDeviceId; }
             set { SetNotifyingProperty(() => SelectedDeviceId, ref _selectedDeviceId, value); }
         }
-
+        
         private DialogState _state;
         public DialogState State
         {
@@ -48,7 +49,13 @@ namespace DSImager.ViewModels
                 SetNotifyingProperty(() => State, ref _state, value);
                 SetNotifyingProperty(() => CanConnectToCamera);
                 SetNotifyingProperty(() => IsUiResponsive);
+                SetNotifyingProperty(() => CameraConnectError);
             }
+        }
+
+        public string CameraConnectError
+        {
+            get { return _cameraService.LastError; }
         }
 
         private string _initializationErrorMessage = "";
@@ -101,6 +108,7 @@ namespace DSImager.ViewModels
             {
                 State = DialogState.CameraNotChosen;
             }
+            InitializationErrorMessage = "";
         }
 
         private void ConnectCamera()
@@ -110,9 +118,14 @@ namespace DSImager.ViewModels
             var connected = _cameraService.Initialize(_selectedDeviceId);
             State = connected ? DialogState.CameraConnected : DialogState.CameraChosen;
 
-            if (connected || _cameraService.Initialized)
+            if (!connected || !_cameraService.Initialized)
             {
                 InitializationErrorMessage = _cameraService.LastError;
+            }
+            else
+            {
+                // We're connected! Close the dialog.
+                OwnerView.Close();
             }
 
         }

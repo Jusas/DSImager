@@ -3,18 +3,38 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:dsImager="clr-namespace:DSImager"
-        xmlns:viewModels="clr-namespace:DSImager.ViewModels"
+        xmlns:viewModels="clr-namespace:DSImager.ViewModels;assembly=DSImager.ViewModels"
         xmlns:application="clr-namespace:DSImager.Application"
         xmlns:views="clr-namespace:DSImager.Application.Views"
-        Title="Connect to a camera" Height="184" Width="474" 
+        Title="Connect to a camera" Height="182" Width="474" 
         Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" ResizeMode="NoResize">
-    
+	<Window.Resources>
+		<Storyboard x:Key="ShowError">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Height)">
+                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="246">
+					<EasingDoubleKeyFrame.EasingFunction>
+						<QuadraticEase EasingMode="EaseInOut"/>
+					</EasingDoubleKeyFrame.EasingFunction>
+				</EasingDoubleKeyFrame>
+			</DoubleAnimationUsingKeyFrames>
+		</Storyboard>
+        <Storyboard x:Key="HideError">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Height)">
+                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="182">
+                    <EasingDoubleKeyFrame.EasingFunction>
+                        <QuadraticEase EasingMode="EaseInOut"/>
+                    </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+    </Window.Resources>
+	
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="61*"/>
-            <RowDefinition Height="138*"/>
+            <RowDefinition Height="48"/>
+            <RowDefinition/>
         </Grid.RowDefinitions>
-        <TextBox x:Name="SelectedCameraTextField" HorizontalAlignment="Left" Height="26" Margin="119,11,0,0" TextWrapping="Wrap" Text="{Binding SelectedDeviceId}" VerticalAlignment="Top" Width="337" IsEnabled="False"/>
+        <TextBox x:Name="SelectedCameraTextField" HorizontalAlignment="Left" Height="26" Margin="119,11,0,0" TextWrapping="Wrap" Text="{Binding SelectedDeviceId}" VerticalAlignment="Top" Width="337" IsEnabled="False" />
         <Label Content="Selected Camera:" Margin="10,11,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="26" Width="104"/>
         <Button x:Name="ChooseButton" Command="{Binding ChooseCommand}" 
                 Content="Choose" HorizontalAlignment="Left" Margin="10,10,0,0" 
@@ -29,6 +49,9 @@
                 Width="446" Height="25"
                 IsEnabled="{Binding IsUiResponsive}"
                 Command="{Binding QuitCommand}"/>
+        <Label Name="ErrorLabel" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" 
+               Content="{Binding InitializationErrorMessage}" HorizontalAlignment="Left" Height="30" Margin="10,100,0,0"
+               Grid.Row="1" VerticalAlignment="Top" Width="446" Foreground="Red"/>
 
     </Grid>
 </views:BaseView>

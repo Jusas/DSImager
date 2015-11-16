@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace DSImager.Core.Interfaces
 {
@@ -7,6 +8,8 @@ namespace DSImager.Core.Interfaces
         IViewModel<TViewModel> ViewModel { get; }
 
         event EventHandler OnViewLoaded;
+        event EventHandler<CancelEventArgs> OnViewClosing;
+        event EventHandler OnViewClosed;
 
         void Show();
         void Close();

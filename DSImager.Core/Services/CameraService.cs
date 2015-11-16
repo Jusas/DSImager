@@ -1,4 +1,5 @@
 ﻿using System;
+using ASCOM.DeviceInterface;
 using DSImager.Core.Interfaces;
 
 namespace DSImager.Core.Services
@@ -13,6 +14,13 @@ namespace DSImager.Core.Services
         private ILogService _logService;
 
         public string LastError { get; set; }
+
+        public ICameraV2 Camera
+        {
+            get { return _ascomInterface; }
+        }
+
+        public event CameraChosenHandler OnCameraChosen;
 
         public bool Initialized
         {
@@ -34,6 +42,8 @@ namespace DSImager.Core.Services
         {
             var chooser = new ASCOM.Utilities.Chooser {DeviceType = "Camera"};
             var device = chooser.Choose();
+            if (OnCameraChosen != null)
+                OnCameraChosen(device);
             return device;
         }
 

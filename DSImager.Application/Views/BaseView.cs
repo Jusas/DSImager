@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows;
 using DSImager.Core.Interfaces;
 using MahApps.Metro.Controls;
@@ -9,6 +10,9 @@ namespace DSImager.Application.Views
     {
 
         public event EventHandler OnViewLoaded;
+        public event EventHandler<CancelEventArgs> OnViewClosing;
+        public event EventHandler OnViewClosed;
+
         public bool ShowModal()
         {
             var result = ShowDialog();
@@ -35,11 +39,24 @@ namespace DSImager.Application.Views
 
         protected void InitializeInterfaceBindings()
         {
-            Loaded += OnLoaded;
+            Loaded += OnLoadedHandler;
+            Closing += OnClosingHandler;
+            Closed += OnViewClosedHandler;
         }
 
-        
-        private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
+        private void OnClosingHandler(object sender, CancelEventArgs cancelEventArgs)
+        {
+            if (OnViewClosing != null)
+                OnViewClosing(sender, cancelEventArgs);
+        }
+
+        private void OnViewClosedHandler(object sender, EventArgs args)
+        {
+            if (OnViewClosed != null)
+                OnViewClosed(sender, args);
+        }
+
+        private void OnLoadedHandler(object sender, RoutedEventArgs routedEventArgs)
         {
             if (OnViewLoaded != null)
                 OnViewLoaded(sender, null);
