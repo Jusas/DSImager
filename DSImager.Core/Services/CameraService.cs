@@ -64,6 +64,18 @@ namespace DSImager.Core.Services
                 _logService.LogMessage(this, LogEventCategory.Error, LastError);
                 return false;
             }
+            try
+            {
+                _ascomInterface.Connected = true;
+                _logService.LogMessage(this, LogEventCategory.Informational, "Camera driver connected");
+            }
+            catch (Exception e)
+            {
+                LastError = "Failed to connect to the camera! Exception: " + e.Message;
+                _logService.LogMessage(this, LogEventCategory.Error, LastError);
+                return false;
+            }
+            
             return true;
         }
 

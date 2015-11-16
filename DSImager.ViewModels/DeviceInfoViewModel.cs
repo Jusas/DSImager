@@ -1,4 +1,5 @@
 ﻿using System;
+using ASCOM.DeviceInterface;
 using DSImager.Core.Interfaces;
 
 namespace DSImager.ViewModels
@@ -6,6 +7,9 @@ namespace DSImager.ViewModels
     public class DeviceInfoViewModel : BaseViewModel<DeviceInfoViewModel>
     {
         private readonly ICameraService _cameraService;
+
+        public ICameraV2 Camera { get { return _cameraService.Camera; } }
+        
 
         // tabs: general, capabilities, exposure
         // general: name, description, driverinfo, driverversion, sensortype, sensorname

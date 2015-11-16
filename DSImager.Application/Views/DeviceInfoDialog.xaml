@@ -3,11 +3,75 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:DSImager.Application.Views"
         xmlns:viewModels="clr-namespace:DSImager.ViewModels;assembly=DSImager.ViewModels"
-        Title="DeviceInfoDialog" Height="300" Width="300" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" ShowInTaskbar="False" BorderThickness="1" BorderBrush="Black">
-    <Window.Effect>
+        xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+        Title="DeviceInfoDialog" Height="347" Width="563" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" ShowInTaskbar="False" BorderThickness="1" BorderBrush="Black" ResizeMode="NoResize">
+    <controls:MetroWindow.Effect>
         <DropShadowEffect/>
-    </Window.Effect>
-    <Grid>
-        
+    </controls:MetroWindow.Effect>
+    <Grid Margin="10,10,10,10">
+        <TabControl HorizontalAlignment="Left" Height="{Binding Parent.ActualHeight, Mode=OneWay, RelativeSource={RelativeSource Self}}" Padding="10,10,10,10" VerticalAlignment="Top" Width="{Binding Parent.ActualWidth, Mode=OneWay, RelativeSource={RelativeSource Self}}">
+            <TabItem Header="General">
+                <Grid>
+                    <StackPanel HorizontalAlignment="Left" Height="{Binding Parent.ActualHeight, Mode=OneWay, RelativeSource={RelativeSource Self}}" Width="{Binding Parent.ActualWidth, Mode=OneWay, RelativeSource={RelativeSource Self}}" VerticalAlignment="Top">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="70*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Name" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Name}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="70*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Description" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Description}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="70*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Sensor Name" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.SensorName}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="70*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Sensor Type" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.SensorType}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="70*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Driver Info" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.DriverInfo}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="70*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Driver Version" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.DriverVersion}" Background="Black"/>
+                        </Grid>
+
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Capabilities">
+                <Grid/>
+            </TabItem>
+            <TabItem Header="Exposure">
+                <Grid/>
+            </TabItem>
+        </TabControl>
+
     </Grid>
 </views:BaseView>

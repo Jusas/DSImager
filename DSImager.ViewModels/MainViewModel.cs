@@ -55,7 +55,8 @@ namespace DSImager.ViewModels
 
         private void OpenDeviceInfoDialog()
         {
-            _deviceInfoDialog = _viewProvider.Instantiate<DeviceInfoViewModel>();
+            if(_deviceInfoDialog == null || _deviceInfoDialog.WasClosed)
+                _deviceInfoDialog = _viewProvider.Instantiate<DeviceInfoViewModel>();
             _deviceInfoDialog.Show();
         }
 

@@ -13,6 +13,8 @@ namespace DSImager.Application.Views
         public event EventHandler<CancelEventArgs> OnViewClosing;
         public event EventHandler OnViewClosed;
 
+        public bool WasClosed { get { return !IsLoaded; } }
+
         public bool ShowModal()
         {
             var result = ShowDialog();
