@@ -8,7 +8,7 @@ namespace DSImager.ViewModels
     {
         private readonly ICameraService _cameraService;
 
-        public ICameraV2 Camera { get { return _cameraService.Camera; } }
+        public ICamera Camera { get { return _cameraService.ConnectedCamera; } }
         
 
         // tabs: general, capabilities, exposure

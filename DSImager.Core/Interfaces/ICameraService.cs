@@ -15,7 +15,7 @@ namespace DSImager.Core.Interfaces
         event CameraChosenHandler OnCameraChosen;
         bool Initialized { get; }
         string LastError { get; }
-        ICameraV2 Camera { get; }
+        ICamera ConnectedCamera { get; }
 
         string ChooseDevice();
         bool Initialize(string deviceId);

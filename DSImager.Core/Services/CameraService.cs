@@ -1,5 +1,6 @@
 ﻿using System;
 using ASCOM.DeviceInterface;
+using DSImager.Core.Devices;
 using DSImager.Core.Interfaces;
 
 namespace DSImager.Core.Services
@@ -15,9 +16,10 @@ namespace DSImager.Core.Services
 
         public string LastError { get; set; }
 
-        public ICameraV2 Camera
+        private AscomCamera _camera;
+        public ICamera ConnectedCamera
         {
-            get { return _ascomInterface; }
+            get { return _camera; }
         }
 
         public event CameraChosenHandler OnCameraChosen;
@@ -68,6 +70,7 @@ namespace DSImager.Core.Services
             {
                 _ascomInterface.Connected = true;
                 _logService.LogMessage(this, LogEventCategory.Informational, "Camera driver connected");
+                _camera = new AscomCamera(_ascomInterface);
             }
             catch (Exception e)
             {

@@ -19,7 +19,7 @@ namespace DSImager.Application
         #region FIELDS AND PROPERTIES AND EVENTS
         //-------------------------------------------------------------------------------------------------------
 
-        private System.Windows.Application _application;
+        private System.Windows.Application _application { get { return System.Windows.Application.Current; } }
         private MainWindow _mainWindow { get { return (MainWindow)_application.MainWindow; } }
 
         public event EventHandler OnAppStartUp;
@@ -33,12 +33,12 @@ namespace DSImager.Application
 
         public WpfApplication()
         {
-            _application = System.Windows.Application.Current;
         }
         
 
         public void ExitApplication(int exitCode)
         {
+            _application.Shutdown(exitCode);
         }
 
         #endregion

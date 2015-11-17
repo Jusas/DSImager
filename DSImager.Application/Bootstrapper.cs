@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using DSImager.Application.Views;
+using DSImager.Core.Devices;
 using DSImager.Core.Interfaces;
 using DSImager.Core.Services;
 using DSImager.Core.System;
@@ -48,6 +49,7 @@ namespace DSImager.Application
             container.Register<IViewProvider, ViewProvider>(Lifestyle.Singleton);
             container.Register<ILogService, LogService>(Lifestyle.Singleton);
             container.Register<ICameraService, CameraService>(Lifestyle.Singleton);
+ 
 
             var viewModelTypes =
                 GetAllTypesImplementingOpenGenericType(typeof (IViewModel<>), assembly).ToList();

@@ -125,6 +125,7 @@ namespace DSImager.ViewModels
             else
             {
                 // We're connected! Close the dialog.
+                OwnerView.DialogResult = true;
                 OwnerView.Close();
             }
 
@@ -132,9 +133,8 @@ namespace DSImager.ViewModels
 
         private void Quit()
         {
+            OwnerView.DialogResult = false;
             OwnerView.Close();
-            // todo: refer to IApplication or something
-            //Application.Current.Shutdown();
         }
 
         #endregion

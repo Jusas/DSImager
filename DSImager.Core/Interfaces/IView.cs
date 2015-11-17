@@ -7,6 +7,7 @@ namespace DSImager.Core.Interfaces
     {
         IViewModel<TViewModel> ViewModel { get; }
         bool WasClosed { get; }
+        bool? DialogResult { get; set; }
 
         event EventHandler OnViewLoaded;
         event EventHandler<CancelEventArgs> OnViewClosing;

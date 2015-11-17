@@ -67,6 +67,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\PreviewExposureSlider.cs" />
+    <Compile Include="Converters\ComposingConverter.cs" />
+    <Compile Include="Converters\ListLengthMinusOneConverter.cs" />
+    <Compile Include="Converters\ListToIndexListConverter.cs" />
+    <Compile Include="Converters\NumberListDoubleCollectionConverter.cs" />
+    <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Views\BaseView.cs" />
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="CommandHandler.cs" />
@@ -128,9 +134,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Controls\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\DSImager.Core\DSImager.Core.csproj">
       <Project>{2ddbdbe7-a1be-4d8c-ae8a-a7195474eff5}</Project>

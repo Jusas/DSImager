@@ -4,72 +4,235 @@
         xmlns:views="clr-namespace:DSImager.Application.Views"
         xmlns:viewModels="clr-namespace:DSImager.ViewModels;assembly=DSImager.ViewModels"
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
-        Title="DeviceInfoDialog" Height="347" Width="563" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" ShowInTaskbar="False" BorderThickness="1" BorderBrush="Black" ResizeMode="NoResize">
+        Title="Camera Information" Height="347" Width="563" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderThickness="1" BorderBrush="Black">
+    <controls:MetroWindow.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </controls:MetroWindow.Resources>
     <controls:MetroWindow.Effect>
         <DropShadowEffect/>
     </controls:MetroWindow.Effect>
     <Grid Margin="10,10,10,10">
         <TabControl HorizontalAlignment="Left" Height="{Binding Parent.ActualHeight, Mode=OneWay, RelativeSource={RelativeSource Self}}" Padding="10,10,10,10" VerticalAlignment="Top" Width="{Binding Parent.ActualWidth, Mode=OneWay, RelativeSource={RelativeSource Self}}">
             <TabItem Header="General">
-                <Grid>
+                <ScrollViewer>
+                    <Grid>
                     <StackPanel HorizontalAlignment="Left" Height="{Binding Parent.ActualHeight, Mode=OneWay, RelativeSource={RelativeSource Self}}" Width="{Binding Parent.ActualWidth, Mode=OneWay, RelativeSource={RelativeSource Self}}" VerticalAlignment="Top">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
                                 <ColumnDefinition Width="70*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <Label Margin="1,1,1,1" Content="Name" Background="Black"/>
-                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Name}" Background="Black"/>
+                            
+                                <Label Margin="1,1,1,1" Content="Name" Background="Black"/>
+                                <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Information.Name}" Background="Black"/>
+
+
                         </Grid>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
                                 <ColumnDefinition Width="70*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <Label Margin="1,1,1,1" Content="Description" Background="Black"/>
-                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Description}" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Information.Description}" Background="Black"/>
                         </Grid>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
                                 <ColumnDefinition Width="70*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <Label Margin="1,1,1,1" Content="Sensor Name" Background="Black"/>
-                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.SensorName}" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Information.SensorName}" Background="Black"/>
                         </Grid>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
                                 <ColumnDefinition Width="70*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <Label Margin="1,1,1,1" Content="Sensor Type" Background="Black"/>
-                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.SensorType}" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Information.SensorType}" Background="Black"/>
                         </Grid>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
                                 <ColumnDefinition Width="70*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <Label Margin="1,1,1,1" Content="Driver Info" Background="Black"/>
-                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.DriverInfo}" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Information.DriverInfo}" Background="Black"/>
                         </Grid>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="30*"></ColumnDefinition>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
                                 <ColumnDefinition Width="70*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <Label Margin="1,1,1,1" Content="Driver Version" Background="Black"/>
-                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.DriverVersion}" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Information.DriverVersion}" Background="Black"/>
                         </Grid>
 
                     </StackPanel>
                 </Grid>
+                </ScrollViewer>
             </TabItem>
             <TabItem Header="Capabilities">
-                <Grid/>
-            </TabItem>
-            <TabItem Header="Exposure">
-                <Grid/>
+                <ScrollViewer>
+                <Grid>
+                    <StackPanel CanVerticallyScroll="True" HorizontalAlignment="Left" Width="{Binding Parent.ActualWidth, Mode=OneWay, RelativeSource={RelativeSource Self}}" VerticalAlignment="Top">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Resolution" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.Resolution}" Background="Black"/>
+
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Pixel size" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.PixelSizeX}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Minimum Exposure" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.MinExposure}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Maximum Exposure" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.MaxExposure}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Has Adjustable Gain" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.HasAdjustableGain}" Background="Black"/>
+                        </Grid>
+                        <Grid Visibility="{Binding Camera.Capabilities.HasAdjustableGain, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Minimum Gain" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.MinGain}" Background="Black"/>
+                        </Grid>
+                        <Grid Visibility="{Binding Camera.Capabilities.HasAdjustableGain, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Maximum Gain" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.MaxGain}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Maximum Binning X" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.MaxBinX}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Maximum Binning Y" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.MaxBinY}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Supports Asymmetric Binning" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.CanAsymmetricBin}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Maximum ADU" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.MaxAdu}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Electrons Per ADU" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.ElectronsPerAdu}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Can Set CCD Temperature" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.CanSetCcdTemperature}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Has Shutter" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.HasShutter}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Can Abort Exposure" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.CanAbortExposure}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Can Stop Exposure" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.CanStopExposure}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Can Pulse Guide" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.CanPulseGuide}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                    <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Can Get Cooler Power" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.CanGetCoolerPower}" Background="Black"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                <ColumnDefinition Width="60*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label Margin="1,1,1,1" Content="Supports Fast Readout" Background="Black"/>
+                            <Label Margin="1,1,1,1" Grid.Column="1" Content="{Binding Camera.Capabilities.CanFastReadOut}" Background="Black"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
 
