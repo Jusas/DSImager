@@ -69,6 +69,7 @@
     </ApplicationDefinition>
     <Compile Include="Controls\PreviewExposureSlider.cs" />
     <Compile Include="Converters\ComposingConverter.cs" />
+    <Compile Include="Converters\ListItemFromIndexConverter.cs" />
     <Compile Include="Converters\ListLengthMinusOneConverter.cs" />
     <Compile Include="Converters\ListToIndexListConverter.cs" />
     <Compile Include="Converters\NumberListDoubleCollectionConverter.cs" />

@@ -11,9 +11,11 @@
     xmlns:interaction="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:appcontrols="clr-namespace:DSImager.Application.Controls"
     x:Class="DSImager.Application.Views.MainWindow"
-    Title="{Binding ViewTitle}" Height="768" Width="1366" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
+    Title="{Binding ViewTitle}" Height="768" Width="1366" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+    WindowStartupLocation="CenterScreen">
     <controls:MetroWindow.Resources>
         <converters:ListToIndexListConverter x:Key="ListToIndexListConverter"></converters:ListToIndexListConverter>
+        <converters:ListItemFromIndexConverter x:Key="ListItemFromIndexConverter"></converters:ListItemFromIndexConverter>
         <converters:ListLengthMinusOneConverter x:Key="ListLengthMinusOneConverter"></converters:ListLengthMinusOneConverter>
         <converters:ComposingConverter x:Key="TickIndicesToDoublesConverter">
             <converters:ComposingConverter.Converters>
@@ -57,7 +59,7 @@
                 <!-- information about the connected camera -->
             </ToolBar>
             <ToolBar HorizontalAlignment="Left" FontSize="24">
-                <Label Content="Preview" FontSize="14"/>
+                <Label x:Name="label" Content="Preview" FontSize="14"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xF030;" 
 					Margin="4,0"
@@ -66,7 +68,7 @@
                 <!-- stop f04d -->
                 <!-- turns to stop when taking exposure -->
                 <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xF017;"
+					Content="{Binding}"
 					Margin="4,0"
 					Click="OnPreviewExposureClicked"
 					ToolTip="Exposure setting">
@@ -76,14 +78,14 @@
                                 <MenuItem.Template>
                                     <ControlTemplate TargetType="{x:Type MenuItem}">
                                         <StackPanel Height="32" Width="400" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" Orientation="Horizontal">
-                                        <Grid Width="400" VerticalAlignment="Center">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-                                            <appcontrols:PreviewExposureSlider 
+                                            <Grid Width="400" VerticalAlignment="Center">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                <appcontrols:PreviewExposureSlider Name="PreviewExposureSlider"
                                                 Style="{DynamicResource {x:Type Slider}}"
                                                 IsSnapToTickEnabled="True" Width="400"
                                                 IndexBoundValues="{Binding PreviewExposureOptions}"
@@ -96,14 +98,41 @@
                                                 Ticks="{Binding PreviewExposureOptions, Converter={StaticResource TickIndicesToDoublesConverter}}"
 												BorderThickness="0,0,0,0"
                                                 >
-                                            </appcontrols:PreviewExposureSlider>
-                                        </Grid>
+                                                </appcontrols:PreviewExposureSlider>
+                                            </Grid>
                                         </StackPanel>
                                     </ControlTemplate>
                                 </MenuItem.Template>
                             </MenuItem>
                         </ContextMenu>
                     </Button.ContextMenu>
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <Canvas Width="30" Height="30">
+                                <Label Content="&#xF017;" Height="30" Width="30" RenderTransformOrigin="0.5,0.5" 
+                                       FontSize="19">
+                                    <Label.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform/>
+                                            <SkewTransform/>
+                                            <RotateTransform/>
+                                            <TranslateTransform Y="-2"/>
+                                        </TransformGroup>
+                                    </Label.RenderTransform>
+                                </Label>
+                                <Label FontSize="9" Content="{Binding Path=SelectedPreviewExposureStringValue}" RenderTransformOrigin="0.5,0.5" Width="36"  HorizontalContentAlignment="Right">
+                                    <Label.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform/>
+                                            <SkewTransform/>
+                                            <RotateTransform/>
+                                            <TranslateTransform X="0" Y="16"/>
+                                        </TransformGroup>
+                                    </Label.RenderTransform>
+                                </Label>
+                            </Canvas>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
                 </Button>
                 <CheckBox FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xF01E;"

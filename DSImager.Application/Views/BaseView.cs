@@ -16,7 +16,7 @@ namespace DSImager.Application.Views
         public bool WasClosed { get { return !IsLoaded; } }
 
         public bool ShowModal()
-        {
+        {            
             var result = ShowDialog();
             return result ?? false;
         }

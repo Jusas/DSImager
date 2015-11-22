@@ -57,7 +57,8 @@ namespace DSImager.ViewModels
 
         public virtual void Initialize()
         {
-            
+            // Does nothing by default.
+            // Views should call this after constructing the ViewModel.
         }
 
         internal virtual void OnOwnerViewSet(IView<TViewModel> view)

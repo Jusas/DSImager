@@ -7,7 +7,8 @@
         xmlns:application="clr-namespace:DSImager.Application"
         xmlns:views="clr-namespace:DSImager.Application.Views"
         Title="Connect to a camera" Height="182" Width="474" 
-        Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" ResizeMode="NoResize">
+        Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" ResizeMode="NoResize"
+                WindowStartupLocation="CenterScreen">
 	<Window.Resources>
 		<Storyboard x:Key="ShowError">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(FrameworkElement.Height)">

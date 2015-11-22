@@ -49,6 +49,7 @@ namespace DSImager.Application
             container.Register<IViewProvider, ViewProvider>(Lifestyle.Singleton);
             container.Register<ILogService, LogService>(Lifestyle.Singleton);
             container.Register<ICameraService, CameraService>(Lifestyle.Singleton);
+            container.Register<IImagingService, ImagingService>(Lifestyle.Singleton);
  
 
             var viewModelTypes =
