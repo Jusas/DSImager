@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using DSImager.Core.Interfaces;
+using DSImager.Core.Models;
 
 namespace DSImager.Core.Services
 {
@@ -22,6 +23,9 @@ namespace DSImager.Core.Services
         private const string _filename = "applog.txt";
         private FileStream _stream;
         private StreamWriter _streamWriter;
+
+        private readonly object _globalLogSource = new object();
+        public object GlobalLogSource { get { return _globalLogSource; } }
 
         private Dictionary<object, List<HandlerCategoryPair>> _handlers = new Dictionary<object, List<HandlerCategoryPair>>();
 
@@ -86,18 +90,21 @@ namespace DSImager.Core.Services
         #endregion
 
 
-        public void LogMessage(object logSource, LogEventCategory category, string message)
+        public void LogMessage(LogMessage logMessage)
         {
-            Trace(category, message);
+            Trace(logMessage.Category, logMessage.Message);
 
-            if (_handlers.ContainsKey(logSource))
+            if (_handlers.ContainsKey(logMessage.EventSource) || _handlers.ContainsKey(GlobalLogSource))
             {
-                var handlerList = _handlers[logSource];
+                var handlerList =
+                    _handlers.Where(h => h.Key == logMessage.EventSource || h.Key == GlobalLogSource)
+                        .SelectMany(h => h.Value);
+                //var handlerList = _handlers[logMessage.EventSource];
                 foreach (var h in handlerList)
                 {
-                    if ((h.Categories & category) > 0)
+                    if ((h.Categories & logMessage.Category) > 0)
                     {
-                        h.Handler(logSource, category, message);
+                        h.Handler(logMessage);
                     }
                 }
             }

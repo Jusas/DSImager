@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using DSImager.Core.Interfaces;
+using DSImager.Core.Models;
 
 namespace DSImager.ViewModels
 {
@@ -73,20 +75,86 @@ namespace DSImager.ViewModels
             set
             {
                 SetNotifyingProperty(() => SelectedPreviewExposureIndex, ref _selectedPreviewExposureIndex, value);
-                SetNotifyingProperty(() => SelectedPreviewExposureStringValue);
+                SetNotifyingProperty(() => SelectedPreviewExposure);
             }
         }
 
-        private string _selectedPreviewExposureStringValue = "0";
         /// <summary>
-        /// A string value of the selected preview exposure value.
+        /// Double value of the selected preview exposure value.
         /// </summary>
-        public string SelectedPreviewExposureStringValue
+        public double SelectedPreviewExposure
         {
             get
             {
-                return PreviewExposureOptions != null ? PreviewExposureOptions[_selectedPreviewExposureIndex] + "s" : "";
+                return PreviewExposureOptions != null ? PreviewExposureOptions[_selectedPreviewExposureIndex] : 0;
             }
+        }
+
+        private bool _isPreviewRepeating = false;
+        /// <summary>
+        /// The preview exposure repeat setting.
+        /// </summary>
+        public bool IsPreviewRepeating
+        {
+            get
+            {
+                return _isPreviewRepeating;
+            }
+            set
+            {
+                SetNotifyingProperty(() => IsPreviewRepeating, ref _isPreviewRepeating, value);
+            }
+        }
+
+        public int _selectedBinningModeIndex = 0;
+        /// <summary>
+        /// Binning mode index, selected from BinningModeOptions.
+        /// </summary>
+        public int SelectedBinningModeIndex
+        {
+            get
+            {
+                return _selectedBinningModeIndex;
+            }
+            set
+            {
+                SetNotifyingProperty(() => SelectedBinningModeIndex, ref _selectedBinningModeIndex, value);
+                SetNotifyingProperty(() => SelectedBinningMode);
+            }
+        }
+
+        /// <summary>
+        /// The selected binning mode.
+        /// </summary>
+        public KeyValuePair<int, string> SelectedBinningMode
+        {
+            get { return _binningModeOptions != null ? _binningModeOptions[_selectedBinningModeIndex] : new KeyValuePair<int, string>(); }
+        }
+
+        private List<KeyValuePair<int, string>> _binningModeOptions;
+        /// <summary>
+        /// Different binning modes available for the connected camera.
+        /// </summary>
+        public List<KeyValuePair<int, string>> BinningModeOptions
+        {
+            get { return _binningModeOptions; }
+            set
+            {
+                SetNotifyingProperty(() => BinningModeOptions, ref _binningModeOptions, value);
+                SetNotifyingProperty(() => SelectedBinningMode);
+            }
+        }
+
+        private const int LogBufferSize = 30;
+        private ObservableCollection<LogMessage> _logBuffer = new ObservableCollection<LogMessage>();
+        /// <summary>
+        /// Log messages that have been buffered for GUI.
+        /// </summary>
+        public ObservableCollection<LogMessage> LogMessages { get { return _logBuffer; } }
+
+        public LogMessage LastLogMessage
+        {
+            get { return LogMessages.Count > 0 ? LogMessages[0] : new LogMessage(null, LogEventCategory.Informational, ""); }
         }
 
         #endregion
@@ -105,12 +173,19 @@ namespace DSImager.ViewModels
             _application = application;
             _viewProvider = viewProvider;
             ViewTitle = "DSImager";
+
+            LogMessages.CollectionChanged += (sender, args) => SetNotifyingProperty(() => LastLogMessage);
+            LogMessages.Add(new LogMessage(null, LogEventCategory.Informational, ""));
         }
 
 
         public override void Initialize()
         {
             OwnerView.OnViewLoaded += OnViewLoaded;
+            // Listen to all events.
+            LogService.Subscribe(LogService.GlobalLogSource,
+                LogEventCategory.Error | LogEventCategory.Informational | LogEventCategory.Warning,
+                OnLogMessage);
         }
 
         #endregion
@@ -118,32 +193,21 @@ namespace DSImager.ViewModels
         //-------------------------------------------------------------------------------------------------------
         #region PRIVATE METHODS
         //-------------------------------------------------------------------------------------------------------
-
-
-        private void OnViewLoaded(object sender, EventArgs eventArgs)
-        {
-            _cameraService.OnCameraChosen += OnCameraChosen;
-            _connectDialog = _viewProvider.Instantiate<ConnectDialogViewModel>();
-            bool quit = !_connectDialog.ShowModal();
-            if(quit)
-                _application.ExitApplication(0);
-
-            PostInitialize();
-        }
-
-        private void OnCameraChosen(string cameraName)
-        {
-            ViewTitle = "DSImager - " + cameraName;
-        }
-
+        
         private void PostInitialize()
+        {
+            ConstructPreviewExposureOptions();
+            ConstructBinningOptions();
+        }
+
+        private void ConstructPreviewExposureOptions()
         {
             // Construct ticks (or valid values) for the preview exposure chooser.
             // Limit maximum to 300 seconds.
             // The scale will be from supported minimum to supported maximum or 300s,
             // whichever is smaller.
             const int scaleMax = 300;
-            
+
             var minExposure = _cameraService.ConnectedCamera.Capabilities.MinExposure;
             var maxExposure = _cameraService.ConnectedCamera.Capabilities.MaxExposure;
 
@@ -161,9 +225,25 @@ namespace DSImager.ViewModels
             }
 
             ticks.AddRange(
-                (new double[] {1, 2, 3, 5, 10, 15, 20, 30, 40, 50, 60, 90, 120, 180, 300}).Where(d => d <= maxExposure));
+                (new double[] { 1, 2, 3, 5, 10, 15, 20, 30, 40, 50, 60, 90, 120, 180, 300 }).Where(d => d <= maxExposure));
             PreviewExposureOptions = ticks;
             SelectedPreviewExposureIndex = 0;
+        }
+
+        private void ConstructBinningOptions()
+        {
+            var cap = _cameraService.ConnectedCamera.Capabilities;
+            // For now assume we have equal X and Y binning. Otherwise assume no support.
+            var maxBinning = cap.MaxBinX == cap.MaxBinY ? cap.MaxBinX : 1;
+
+            List<KeyValuePair<int, string>> opts = new List<KeyValuePair<int, string>>();
+            for (int i = 0; i < maxBinning; i++)
+            {
+                opts.Add(new KeyValuePair<int, string>(i+1, string.Format("{0}x{0}",i+1)));
+            }
+
+            BinningModeOptions = opts;
+            SelectedBinningModeIndex = 0;
         }
 
         private void OpenDeviceInfoDialog()
@@ -173,6 +253,42 @@ namespace DSImager.ViewModels
             _deviceInfoDialog.Show();
         }
 
+        private void SetBinning(object binningModeOption)
+        {
+            KeyValuePair<int, string> b = (KeyValuePair<int, string>) binningModeOption;
+            var binning = BinningModeOptions.Where(o => o.Key == b.Key).FirstOrDefault();
+            SelectedBinningModeIndex = BinningModeOptions.IndexOf(binning);
+        }
+
+        // Event handlers
+
+        private void OnViewLoaded(object sender, EventArgs eventArgs)
+        {
+            _cameraService.OnCameraChosen += OnCameraChosen;
+            _connectDialog = _viewProvider.Instantiate<ConnectDialogViewModel>();
+            bool quit = !_connectDialog.ShowModal();
+            if (quit)
+                _application.ExitApplication(0);
+
+            PostInitialize();
+        }
+
+        private void OnCameraChosen(string cameraName)
+        {
+            ViewTitle = "DSImager - " + cameraName;
+        }
+
+
+        private void OnLogMessage(LogMessage logMessage)
+        {
+            while (_logBuffer.Count >= LogBufferSize)
+            {
+                _logBuffer.RemoveAt(_logBuffer.Count - 1);
+            }
+            _logBuffer.Insert(0, logMessage);
+        }
+
+
         #endregion
 
         //-------------------------------------------------------------------------------------------------------
@@ -180,6 +296,8 @@ namespace DSImager.ViewModels
         //-------------------------------------------------------------------------------------------------------
 
         public ICommand OpenDeviceInfoDialogCommand { get { return new CommandHandler(OpenDeviceInfoDialog); } }
+        public ICommand SetBinningCommand { get { return new CommandHandler(SetBinning); } }
+
 
         #endregion
     }

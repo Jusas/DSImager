@@ -18,6 +18,12 @@ namespace DSImager.ViewModels
             _canExecuteAction = o => true;
         }
 
+        public CommandHandler(Action<object> commandAction)
+        {
+            _commandAction = commandAction;
+            _canExecuteAction = o => true;
+        }
+
         public CommandHandler(Action commandAction, Func<object, bool> canExecute)
         {
             _commandAction = o => commandAction();

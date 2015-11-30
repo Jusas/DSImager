@@ -2,6 +2,7 @@
 using ASCOM.DeviceInterface;
 using DSImager.Core.Devices;
 using DSImager.Core.Interfaces;
+using DSImager.Core.Models;
 
 namespace DSImager.Core.Services
 {
@@ -58,24 +59,24 @@ namespace DSImager.Core.Services
             try
             {
                 _ascomInterface = new ASCOM.DriverAccess.Camera(deviceId);
-                _logService.LogMessage(this, LogEventCategory.Informational, "Camera driver instantiated: " + deviceId);
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Camera driver instantiated: " + deviceId));
             }
             catch (Exception e)
             {
                 LastError = "Failed to instantiate the camera driver! Exception: " + e.Message;
-                _logService.LogMessage(this, LogEventCategory.Error, LastError);
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Error, LastError));
                 return false;
             }
             try
             {
                 _ascomInterface.Connected = true;
-                _logService.LogMessage(this, LogEventCategory.Informational, "Camera driver connected");
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Camera driver connected"));
                 _camera = new AscomCamera(_ascomInterface);
             }
             catch (Exception e)
             {
                 LastError = "Failed to connect to the camera! Exception: " + e.Message;
-                _logService.LogMessage(this, LogEventCategory.Error, LastError);
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Error, LastError));
                 return false;
             }
             

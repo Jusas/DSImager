@@ -39,6 +39,9 @@
     <StartupObject>DSImager.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FontAwesome.WPF">
+      <HintPath>..\packages\FontAwesome.WPF.4.4.0.6\lib\FontAwesome.WPF.dll</HintPath>
+    </Reference>
     <Reference Include="MahApps.Metro">
       <HintPath>..\packages\MahApps.Metro.1.1.2.0\lib\net45\MahApps.Metro.dll</HintPath>
     </Reference>
@@ -72,7 +75,11 @@
     <Compile Include="Converters\ListItemFromIndexConverter.cs" />
     <Compile Include="Converters\ListLengthMinusOneConverter.cs" />
     <Compile Include="Converters\ListToIndexListConverter.cs" />
+    <Compile Include="Converters\LogCategoryToIconConverter.cs" />
     <Compile Include="Converters\NumberListDoubleCollectionConverter.cs" />
+    <Compile Include="Converters\CompareAndConvertToBooleanConverter.cs" />
+    <Compile Include="Converters\BrushForSelectionConverter.cs" />
+    <Compile Include="Converters\SelectedListIndexItemToStringConverter.cs" />
     <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Views\BaseView.cs" />
     <Compile Include="Bootstrapper.cs" />

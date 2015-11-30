@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DSImager.Core.Models;
 
 namespace DSImager.Core.Interfaces
 {
@@ -15,10 +16,15 @@ namespace DSImager.Core.Interfaces
         Error = 1 << 3
     }
 
-    public delegate void LogMessageHandler(object logSource, LogEventCategory category, string message);
+    public delegate void LogMessageHandler(LogMessage logMessage);
 
     public interface ILogService : IDisposable
     {
+        /// <summary>
+        /// Global log source, ie. all sources will do.
+        /// </summary>
+        object GlobalLogSource { get; }
+
         /// <summary>
         /// A simple trace to the log file and to console.
         /// </summary>
@@ -31,10 +37,7 @@ namespace DSImager.Core.Interfaces
         /// Performs standard trace and additionally notifies all listeners 
         /// subscribed to the eventSource.
         /// </summary>
-        /// <param name="logSource">The logger (source object)</param>
-        /// <param name="category">The category</param>
-        /// <param name="message">The message</param>
-        void LogMessage(object logSource, LogEventCategory category, string message);
+        void LogMessage(LogMessage logMessage);
 
         /// <summary>
         /// Subscribes to listen to log messages from a given source. All messages
