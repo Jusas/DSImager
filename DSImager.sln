@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{16FA8D
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DSImager.Tests", "DSImager.Tests\DSImager.Tests.csproj", "{C212609D-7747-4AC2-AF18-2356176801E0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,10 @@ Global
 		{AD674CD0-866C-42F8-9C16-AA3C6A2275DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD674CD0-866C-42F8-9C16-AA3C6A2275DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD674CD0-866C-42F8-9C16-AA3C6A2275DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C212609D-7747-4AC2-AF18-2356176801E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C212609D-7747-4AC2-AF18-2356176801E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C212609D-7747-4AC2-AF18-2356176801E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C212609D-7747-4AC2-AF18-2356176801E0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

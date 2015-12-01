@@ -14,11 +14,16 @@ namespace DSImager.Core.Services
     /// </summary>
     public class ImagingService : IImagingService
     {
+
+        public bool DarkFrameMode { get; set; }
+
         private ICameraService _cameraService;
+
 
         public ImagingService(ICameraService cameraService)
         {
             _cameraService = cameraService;
+            DarkFrameMode = false;
         }
 
         /*
@@ -44,11 +49,27 @@ namespace DSImager.Core.Services
          * - 
          * */
 
-        // todo device layer omaksi projektikseen
-
-        public void TakeExposure(double duration, int binX, int binY, Rect areaRect)
+        public async Task<bool> TakeExposure(double duration, int binX, int binY, Rect areaRect)
         {
-            
+            _cameraService.ConnectedCamera.BinX = (short)binX;
+            _cameraService.ConnectedCamera.BinY = (short)binY;
+
+            // Todo check that the area isn't out of bounds, especially with binning on
+            int rightBound = _cameraService.ConnectedCamera.CameraXSize / binX;
+            int bottomBound = _cameraService.ConnectedCamera.CameraYSize / binY;
+            if(areaRect.X + areaRect.Width > rightBound || areaRect.X < 0)
+                throw new ArgumentOutOfRangeException("areaRect", "Pixel X area out of camera pixel bounds");
+            if (areaRect.Y + areaRect.Height > bottomBound || areaRect.Y < 0)
+                throw new ArgumentOutOfRangeException("areaRect", "Pixel Y area out of camera pixel bounds");
+
+            _cameraService.ConnectedCamera.StartX = areaRect.X;
+            _cameraService.ConnectedCamera.StartY = areaRect.Y;
+            _cameraService.ConnectedCamera.NumX = areaRect.Width;
+            _cameraService.ConnectedCamera.NumY = areaRect.Height;
+
+            var result = await _cameraService.StartExposure(duration, DarkFrameMode);
+            return result;
+
         }
     }
 }

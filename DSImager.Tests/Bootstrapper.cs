@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using ASCOM.DeviceInterface;
 using ASCOM.DriverAccess;
-using DSImager.Application.Views;
-using DSImager.Core.Devices;
 using DSImager.Core.Interfaces;
 using DSImager.Core.Services;
 using DSImager.Core.System;
 using DSImager.ViewModels;
 using SimpleInjector;
 
-namespace DSImager.Application
+namespace DSImager.Tests
 {
     /// <summary>
     /// Bootstrapper class, for registering classes to SimpleInjector.
@@ -41,36 +41,33 @@ namespace DSImager.Application
             return validTypes;
         }
 
-        public static Container Bootstrap()
+        public static Container DefaultBootstrap()
         {
             var assembly = Assembly.GetExecutingAssembly();
 
             var container = new Container();
 
-            container.Register<IApplication, WpfApplication>(Lifestyle.Singleton);
             container.Register<IViewProvider, ViewProvider>(Lifestyle.Singleton);
             container.Register<IDeviceProvider, DeviceProvider>(Lifestyle.Singleton);
             container.Register<ILogService, LogService>(Lifestyle.Singleton);
             container.Register<ICameraService, CameraService>(Lifestyle.Singleton);
             container.Register<IImagingService, ImagingService>(Lifestyle.Singleton);
- 
+
             var viewModelTypes =
-                GetAllTypesImplementingOpenGenericType(typeof (IViewModel<>), assembly).ToList();
+                GetAllTypesImplementingOpenGenericType(typeof(IViewModel<>), assembly).ToList();
             viewModelTypes.ForEach(t => container.Register(t));
 
             var viewTypes =
-                GetAllTypesImplementingOpenGenericType(typeof (IView<>), assembly).ToList();
+                GetAllTypesImplementingOpenGenericType(typeof(IView<>), assembly).ToList();
             viewTypes.ForEach(t => container.Register(t));
 
             var viewProvider = container.GetInstance<IViewProvider>();
-            viewProvider.Register<ConnectDialog, ConnectDialogViewModel>();
-            viewProvider.Register<DeviceInfoDialog, DeviceInfoViewModel>();
 
             var deviceProvider = container.GetInstance<IDeviceProvider>();
             deviceProvider.Register<ICameraV2, Camera>();
             deviceProvider.Register<IFilterWheelV2, FilterWheel>();
             deviceProvider.Register<ITelescopeV3, Telescope>();
-            
+
 
             container.Verify();
             return container;

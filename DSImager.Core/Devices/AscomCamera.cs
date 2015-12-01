@@ -5,6 +5,7 @@ using DSImager.Core.Models;
 
 namespace DSImager.Core.Devices
 {
+    [Obsolete("Removed the extra layer of abstraction - Will use ASCOM interfaces directly")]
     public class AscomCamera : ICamera
     {
         private ASCOM.DeviceInterface.ICameraV2 _camera;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
+using ASCOM.DeviceInterface;
 using DSImager.Core.Interfaces;
 using DSImager.Core.Models;
 
@@ -47,7 +48,7 @@ namespace DSImager.ViewModels
         /// <summary>
         /// Reference to the currently connected camera.
         /// </summary>
-        public ICamera ConnectedCamera { get { return _cameraService.ConnectedCamera; } }
+        public ICameraV2 ConnectedCamera { get { return _cameraService.ConnectedCamera; } }
         private readonly ICameraService _cameraService;
 
 
@@ -208,8 +209,8 @@ namespace DSImager.ViewModels
             // whichever is smaller.
             const int scaleMax = 300;
 
-            var minExposure = _cameraService.ConnectedCamera.Capabilities.MinExposure;
-            var maxExposure = _cameraService.ConnectedCamera.Capabilities.MaxExposure;
+            var minExposure = _cameraService.ConnectedCamera.ExposureMin;
+            var maxExposure = _cameraService.ConnectedCamera.ExposureMax;
 
             if (Double.IsInfinity(maxExposure) || Double.IsNaN(maxExposure) || maxExposure > scaleMax)
                 maxExposure = scaleMax;
@@ -232,9 +233,9 @@ namespace DSImager.ViewModels
 
         private void ConstructBinningOptions()
         {
-            var cap = _cameraService.ConnectedCamera.Capabilities;
+            var cam = _cameraService.ConnectedCamera;
             // For now assume we have equal X and Y binning. Otherwise assume no support.
-            var maxBinning = cap.MaxBinX == cap.MaxBinY ? cap.MaxBinX : 1;
+            var maxBinning = cam.MaxBinX == cam.MaxBinY ? cam.MaxBinX : 1;
 
             List<KeyValuePair<int, string>> opts = new List<KeyValuePair<int, string>>();
             for (int i = 0; i < maxBinning; i++)
