@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using ASCOM.DeviceInterface;
 using DSImager.Core.Devices;
@@ -32,12 +33,12 @@ namespace DSImager.Core.Services
             get { return _camera != null; }
         }
 
-        private bool _isReadyForNewExposure = true;
-        public bool IsReadyForNewExposure
+        private bool _isExposuring = false;
+        public bool IsExposuring
         {
             get
             {
-                return _isReadyForNewExposure;
+                return _isExposuring;
             }
         }
 
@@ -110,7 +111,7 @@ namespace DSImager.Core.Services
         /// </returns>
         public async Task<bool> StartExposure(double duration, bool isDarkFrame = false)
         {
-            _isReadyForNewExposure = false;
+            _isExposuring = true;
 
             if (_camera.CameraState != CameraStates.cameraIdle)
             {
@@ -143,18 +144,29 @@ namespace DSImager.Core.Services
             if (_camera.ImageReady)
             {
                 int[,] imgArr = (int[,]) _camera.ImageArray;
-                int imageW = imgArr.GetUpperBound(0) + 1;
-                int imageH = imgArr.GetUpperBound(1) + 1;
+                int imageW = imgArr.GetLength(0);
+                int imageH = imgArr.GetLength(1);
 
-                // Convert to single dimension array and store as last exposure.              
-                int[] pixelArr = new int[imgArr.Length];
-                Buffer.BlockCopy(imgArr, 0, pixelArr, 0, imgArr.Length);
-                Exposure exposure = new Exposure(imageW, imageH, pixelArr);
+                // BlockCopy doesn't work here because the output row/column order is wrong.
+                // We really want the data as a single dimensional array and this is not
+                // the most efficient way to do it but will have to suffice until
+                // I find a more efficient way.
+                int[] pixelArr = new int[imgArr.GetLength(0) * imgArr.GetLength(1)];
+                for (int y = 0; y < imageH; y++)
+                {
+                    for (int x = 0; x < imageW; x++)
+                    {
+                        pixelArr[y * imageW + x] = imgArr[x, y];
+                    }
+                }
+                
+
+                Exposure exposure = new Exposure(imageW, imageH, pixelArr, _camera.MaxADU, true);
                 metadata.ExposureTime = _camera.LastExposureDuration;
                 exposure.MetaData = metadata;
                 _exposure = exposure;
 
-                _isReadyForNewExposure = true;
+                _isExposuring = false;
 
                 if (OnExposureCompleted != null)
                     OnExposureCompleted(true, exposure);
@@ -164,7 +176,7 @@ namespace DSImager.Core.Services
             // The exposure was aborted and image could not be retrieved.
             else
             {
-                _isReadyForNewExposure = true;
+                _isExposuring = false;
 
                 if (OnExposureCompleted != null)
                     OnExposureCompleted(false, null);

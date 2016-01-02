@@ -6,6 +6,7 @@ using System.Windows.Input;
 using ASCOM.DeviceInterface;
 using DSImager.Core.Interfaces;
 using DSImager.Core.Models;
+using DSImager.Core.System;
 
 namespace DSImager.ViewModels
 {
@@ -54,6 +55,7 @@ namespace DSImager.ViewModels
 
         private IApplication _application;
         private IViewProvider _viewProvider;
+        private IImagingService _imagingService;
 
         /// <summary>
         /// Reference to a connect dialog instance (injected).
@@ -146,6 +148,58 @@ namespace DSImager.ViewModels
             }
         }
 
+        private bool _isExposuring = false;
+        /// <summary>
+        /// Is the camera currently exposuring.
+        /// </summary>
+        public bool IsExposuring
+        {
+            get { return _isExposuring; }
+            set
+            {
+                SetNotifyingProperty(() => IsExposuring, ref _isExposuring, value);
+            }
+        }
+
+        private int _currentExposureProgress = 0;
+        /// <summary>
+        /// Progress of the current exposure (shown in the progress bar)
+        /// </summary>
+        public int CurrentExposureProgress
+        {
+            get { return _currentExposureProgress; }
+            set
+            {
+                SetNotifyingProperty(() => CurrentExposureProgress, ref _currentExposureProgress, value);
+            }
+        }
+
+        private string _exposureStatusText = "";
+        /// <summary>
+        /// The text of the exposure progress bar showing the state of the exposuring.
+        /// </summary>
+        public string ExposureStatusText
+        {
+            get { return _exposureStatusText; }
+            set
+            {
+                SetNotifyingProperty(() => ExposureStatusText, ref _exposureStatusText, value);
+            }
+        }
+
+        private Exposure _lastExposure;
+        /// <summary>
+        /// The last exposure that was taken.
+        /// </summary>
+        public Exposure LastExposure
+        {
+            get { return _lastExposure; }
+            private set
+            {
+                SetNotifyingProperty(() => LastExposure, ref _lastExposure, value);
+            }
+        }
+
         private const int LogBufferSize = 30;
         private ObservableCollection<LogMessage> _logBuffer = new ObservableCollection<LogMessage>();
         /// <summary>
@@ -166,11 +220,12 @@ namespace DSImager.ViewModels
         //-------------------------------------------------------------------------------------------------------
 
 
-        public MainViewModel(ILogService logService, ICameraService cameraService, IViewProvider viewProvider,
-            IApplication application)
+        public MainViewModel(ILogService logService, ICameraService cameraService, IImagingService imagingService, 
+            IViewProvider viewProvider, IApplication application)
             : base(logService)
         {
             _cameraService = cameraService;
+            _imagingService = imagingService;
             _application = application;
             _viewProvider = viewProvider;
             ViewTitle = "DSImager";
@@ -199,6 +254,7 @@ namespace DSImager.ViewModels
         {
             ConstructPreviewExposureOptions();
             ConstructBinningOptions();
+            SetupBindings();
         }
 
         private void ConstructPreviewExposureOptions()
@@ -216,13 +272,12 @@ namespace DSImager.ViewModels
                 maxExposure = scaleMax;
 
             List<double> ticks = new List<double>();
-            ticks.Add(minExposure);
 
             var currentVal = minExposure;
             while (currentVal < 1)
             {
-                currentVal *= 10;
                 ticks.Add(currentVal);
+                currentVal *= 10;                
             }
 
             ticks.AddRange(
@@ -247,6 +302,15 @@ namespace DSImager.ViewModels
             SelectedBinningModeIndex = 0;
         }
 
+        private void SetupBindings()
+        {
+            _cameraService.OnExposureProgressChanged += OnExposureProgressChanged;
+            _cameraService.OnExposureCompleted += OnExposureCompleted;
+            _imagingService.OnImagingComplete += OnImagingComplete;
+        }
+
+
+
         private void OpenDeviceInfoDialog()
         {
             if(_deviceInfoDialog == null || _deviceInfoDialog.WasClosed)
@@ -259,6 +323,13 @@ namespace DSImager.ViewModels
             KeyValuePair<int, string> b = (KeyValuePair<int, string>) binningModeOption;
             var binning = BinningModeOptions.Where(o => o.Key == b.Key).FirstOrDefault();
             SelectedBinningModeIndex = BinningModeOptions.IndexOf(binning);
+        }
+
+        private void PreviewExposure()
+        {
+            IsExposuring = true;
+            _imagingService.TakeSingleExposure(SelectedPreviewExposure, SelectedBinningMode.Key, SelectedBinningMode.Key,
+                null);
         }
 
         // Event handlers
@@ -289,6 +360,33 @@ namespace DSImager.ViewModels
             _logBuffer.Insert(0, logMessage);
         }
 
+        private void OnExposureProgressChanged(double currentExposureDuration, double targetExposureDuration)
+        {
+            // Update the progress bar text and value.
+            // TODO: show pbar only when imaging is in progress
+            CurrentExposureProgress = (int)(currentExposureDuration / targetExposureDuration * 100.0);
+            var exposureNum = _imagingService.CurrentImageSequence.CurrentExposure + 1;
+            var totalExposures = _imagingService.CurrentImageSequence.NumExposures;
+            double remainingExposureTime = (totalExposures - exposureNum + 1) *
+                                           _imagingService.CurrentImageSequence.ExposureDuration - currentExposureDuration;
+            var remainingStr = TimeSpan.FromSeconds(remainingExposureTime).ToString("hh\\:mm\\:ss");
+            ExposureStatusText = string.Format("Exposure {0}/{1} | Progress: {2}% | Total Time Remaining: {3}",
+                exposureNum, totalExposures, CurrentExposureProgress, remainingStr);
+        }
+
+        private void OnExposureCompleted(bool successful, Exposure exposure)
+        {
+            // TODO: Set IsExposuring to false but only if it was the last image of the session?
+            IsExposuring = false;
+            CurrentExposureProgress = 0;
+            ExposureStatusText = "";           
+        }
+
+
+        private void OnImagingComplete(bool successful, Exposure exposure)
+        {
+            LastExposure = exposure;
+        }
 
         #endregion
 
@@ -298,6 +396,7 @@ namespace DSImager.ViewModels
 
         public ICommand OpenDeviceInfoDialogCommand { get { return new CommandHandler(OpenDeviceInfoDialog); } }
         public ICommand SetBinningCommand { get { return new CommandHandler(SetBinning); } }
+        public ICommand PreviewExposureCommand { get { return new CommandHandler(PreviewExposure); } }
 
 
         #endregion

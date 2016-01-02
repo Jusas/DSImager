@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DSImager.Core.Interfaces;
 using DSImager.Core.System;
+using DSImager.Core.Models;
 
 namespace DSImager.Core.Services
 {
@@ -15,15 +16,23 @@ namespace DSImager.Core.Services
     public class ImagingService : IImagingService
     {
 
+        // TODO: is this supposed to be here? Images are taken in sessions, when are dark frames taken and shoud that setting be in the ImageSequence itself?
         public bool DarkFrameMode { get; set; }
 
+        public event ImagingCompletedHandler OnImagingComplete;
+
         private ICameraService _cameraService;
+        private ILogService _logService;
 
+        public ImageSequence CurrentImageSequence { get; set; }
 
-        public ImagingService(ICameraService cameraService)
+        public ImagingSession CurrentImagingSession { get; set; }
+
+        public ImagingService(ICameraService cameraService, ILogService logService)
         {
             _cameraService = cameraService;
-            DarkFrameMode = false;
+            _logService = logService;
+            DarkFrameMode = false; 
         }
 
         /*
@@ -49,27 +58,78 @@ namespace DSImager.Core.Services
          * - 
          * */
 
-        public async Task<bool> TakeExposure(double duration, int binX, int binY, Rect areaRect)
+        public async Task<bool> TakeSingleExposure(double duration, int binX, int binY, Rect? areaRect)
         {
-            _cameraService.ConnectedCamera.BinX = (short)binX;
-            _cameraService.ConnectedCamera.BinY = (short)binY;
+            // TODO: create a session with single sequence with single shot.
+
+            CurrentImageSequence = new ImageSequence();
+            CurrentImageSequence.ExposureDuration = duration;
+            var sequences = new[] {CurrentImageSequence};
+            if(areaRect == null)
+                areaRect = new Rect {
+                    Width = _cameraService.ConnectedCamera.CameraXSize,
+                    Height = _cameraService.ConnectedCamera.CameraYSize,
+                    X = 0,
+                    Y = 0
+                };
+
+            CurrentImagingSession = new ImagingSession(sequences)
+            {
+                AreaRect = areaRect.Value,
+                BinX = binX,
+                BinY = binY,
+                Name = "Preview"
+            };
+
+            return await BeginImagingSession(CurrentImagingSession);
+        }
+        
+
+        public async Task<bool> BeginImagingSession(ImagingSession session)
+        {
+            // Set binning for the camera accordingly.
+            _cameraService.ConnectedCamera.BinX = (short)session.BinX;
+            _cameraService.ConnectedCamera.BinY = (short)session.BinY;
 
             // Todo check that the area isn't out of bounds, especially with binning on
-            int rightBound = _cameraService.ConnectedCamera.CameraXSize / binX;
-            int bottomBound = _cameraService.ConnectedCamera.CameraYSize / binY;
-            if(areaRect.X + areaRect.Width > rightBound || areaRect.X < 0)
+            int rightBound = _cameraService.ConnectedCamera.CameraXSize;
+            int bottomBound = _cameraService.ConnectedCamera.CameraYSize;
+            if (session.AreaRect.X + session.AreaRect.Width > rightBound || session.AreaRect.X < 0)
                 throw new ArgumentOutOfRangeException("areaRect", "Pixel X area out of camera pixel bounds");
-            if (areaRect.Y + areaRect.Height > bottomBound || areaRect.Y < 0)
+            if (session.AreaRect.Y + session.AreaRect.Height > bottomBound || session.AreaRect.Y < 0)
                 throw new ArgumentOutOfRangeException("areaRect", "Pixel Y area out of camera pixel bounds");
 
-            _cameraService.ConnectedCamera.StartX = areaRect.X;
-            _cameraService.ConnectedCamera.StartY = areaRect.Y;
-            _cameraService.ConnectedCamera.NumX = areaRect.Width;
-            _cameraService.ConnectedCamera.NumY = areaRect.Height;
+            _cameraService.ConnectedCamera.StartX = session.AreaRect.X;
+            _cameraService.ConnectedCamera.StartY = session.AreaRect.Y;
+            _cameraService.ConnectedCamera.NumX = session.AreaRect.Width / session.BinX;
+            _cameraService.ConnectedCamera.NumY = session.AreaRect.Height / session.BinY;
 
-            var result = await _cameraService.StartExposure(duration, DarkFrameMode);
+            _cameraService.OnExposureCompleted += OnExposureCompleted;
+
+            // TODO: handling of several ImageSequences: now just runs the first frame of the first sequence.
+            var sequence = session.ImageSequences.FirstOrDefault();
+            bool result = false;
+            try
+            {
+                result = await _cameraService.StartExposure(sequence.ExposureDuration, DarkFrameMode);
+                _cameraService.OnExposureCompleted -= OnExposureCompleted;
+            }
+            catch (Exception e)
+            {
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Error, "Exception occured on BeginImagingSession: " + e.Message));
+                _cameraService.OnExposureCompleted -= OnExposureCompleted;
+                throw;
+            }
+
             return result;
 
+            
+        }
+
+        private void OnExposureCompleted(bool successful, Exposure exposure)
+        {
+            if (OnImagingComplete != null)
+                OnImagingComplete(successful, exposure);
         }
     }
 }

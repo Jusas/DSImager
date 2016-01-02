@@ -18,7 +18,7 @@ namespace DSImager.Tests
         [OneTimeSetUp]
         public void Init()
         {
-            _container = Bootstrapper.DefaultBootstrap();
+            _container = Bootstrapper.Container;
             _cameraService = _container.GetInstance<ICameraService>();
             var initialized = _cameraService.Initialize("ASCOM.Simulator.Camera");
             Assert.True(initialized);

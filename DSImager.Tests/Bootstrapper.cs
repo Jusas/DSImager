@@ -20,6 +20,9 @@ namespace DSImager.Tests
     /// </summary>
     public static class Bootstrapper
     {
+
+        public static Container Container { get; set; }
+
         private static IEnumerable<Type> GetAllTypesImplementingOpenGenericType(Type openGenericType, Assembly assembly)
         {
             var types = assembly.GetTypes();
@@ -50,6 +53,7 @@ namespace DSImager.Tests
             container.Register<IViewProvider, ViewProvider>(Lifestyle.Singleton);
             container.Register<IDeviceProvider, DeviceProvider>(Lifestyle.Singleton);
             container.Register<ILogService, LogService>(Lifestyle.Singleton);
+            container.Register<IStorageService, StorageService>(Lifestyle.Singleton);
             container.Register<ICameraService, CameraService>(Lifestyle.Singleton);
             container.Register<IImagingService, ImagingService>(Lifestyle.Singleton);
 
@@ -70,6 +74,7 @@ namespace DSImager.Tests
 
 
             container.Verify();
+            Container = container;
             return container;
         }
     }

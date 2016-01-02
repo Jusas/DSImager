@@ -21,6 +21,8 @@
         <converters:ListLengthMinusOneConverter x:Key="ListLengthMinusOneConverter"></converters:ListLengthMinusOneConverter>
         <converters:SelectedListIndexItemToStringConverter x:Key="SelectedListIndexItemToStringConverter"></converters:SelectedListIndexItemToStringConverter>
         <converters:LogCategoryToIconConverter x:Key="LogCategoryToIconConverter"></converters:LogCategoryToIconConverter>
+        <converters:VisibilityConverter x:Key="VisibilityConverter"></converters:VisibilityConverter>
+        <converters:ExposureToImageConverter x:Key="ExposureToImageConverter"></converters:ExposureToImageConverter>
         <converters:ComposingConverter x:Key="TickIndicesToDoublesConverter">
             <converters:ComposingConverter.Converters>
                 <converters:ListToIndexListConverter></converters:ListToIndexListConverter>
@@ -68,7 +70,9 @@
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xF030;" 
 					Margin="4,0"
-					ToolTip="Take snapshot"/>
+					ToolTip="Take snapshot"
+                    Command="{Binding PreviewExposureCommand}"
+                        />
                 <!-- video camera f03d -->
                 <!-- stop f04d -->
                 <!-- turns to stop when taking exposure -->
@@ -205,17 +209,15 @@
             </ToolBar>
         </ToolBarPanel>
         <Canvas Grid.Row="2" Name="ContentAreaCanvas">
-            <Canvas Name="ProgressBarCanvas" Height="30" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Panel.ZIndex="1">
-                <ProgressBar Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Value="79.8" Panel.ZIndex="1" Background="Black" BorderBrush="Black" Height="{Binding Parent.ActualHeight, RelativeSource={RelativeSource Self}}" Opacity="0.4"></ProgressBar>
-                <Label Content="Exposure 1/5 | Progress: 27% | Total Time Remaining: 3:39" Height="30" VerticalContentAlignment="Center" TextOptions.TextFormattingMode="Display" Canvas.Top="0" FontSize="14" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" HorizontalContentAlignment="Center" />
+            <Canvas Name="ProgressBarCanvas" Height="30" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Panel.ZIndex="1" Visibility="{Binding IsExposuring, Converter={StaticResource VisibilityConverter}}" >
+                <ProgressBar Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Value="{Binding CurrentExposureProgress}" Panel.ZIndex="1" Background="Black" BorderBrush="Black" Height="{Binding Parent.ActualHeight, RelativeSource={RelativeSource Self}}" Opacity="0.4" />
+                <Label Content="{Binding ExposureStatusText}" Height="30" VerticalContentAlignment="Center" TextOptions.TextFormattingMode="Display" Canvas.Top="0" FontSize="14" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" HorizontalContentAlignment="Center" />
             </Canvas>
-            <ScrollViewer HorizontalAlignment="Left" Width="{Binding Parent.ActualWidth, Mode=OneWay, RelativeSource={RelativeSource Self}}" 
-                          Height="{Binding Parent.ActualHeight, Mode=OneWay, RelativeSource={RelativeSource Self}}">
-                <Canvas Width="{Binding Width, ElementName=CameraImage, Mode=OneWay}" Height="{Binding Height, ElementName=CameraImage}">
-                    <Image Name="CameraImage" Height="100" Width="100"/>
-                </Canvas>
-
-            </ScrollViewer>
+            <appcontrols:ZoomableBorder Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Height="{Binding Parent.ActualHeight, RelativeSource={RelativeSource Self}}" ClipToBounds="True">
+                <Border BorderBrush="#7F97FF00" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image Name="CameraImage" Source="{Binding LastExposure, Converter={StaticResource ExposureToImageConverter}}"/>
+                </Border>
+            </appcontrols:ZoomableBorder>
         </Canvas>
         <StatusBar HorizontalAlignment="Left" Height="30" Grid.Row="3" VerticalAlignment="Top" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Background="#FF343434">
             <Grid Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}">

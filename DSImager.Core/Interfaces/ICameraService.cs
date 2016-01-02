@@ -21,7 +21,7 @@ namespace DSImager.Core.Interfaces
         bool Initialized { get; }
         string LastError { get; }
         ICameraV2 ConnectedCamera { get; }
-        bool IsReadyForNewExposure { get; }
+        bool IsExposuring { get; }
         Exposure LastExposure { get; }        
 
         string ChooseDevice();
