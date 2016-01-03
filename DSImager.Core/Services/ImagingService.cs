@@ -60,8 +60,6 @@ namespace DSImager.Core.Services
 
         public async Task<bool> TakeSingleExposure(double duration, int binX, int binY, Rect? areaRect)
         {
-            // TODO: create a session with single sequence with single shot.
-
             CurrentImageSequence = new ImageSequence();
             CurrentImageSequence.ExposureDuration = duration;
             var sequences = new[] {CurrentImageSequence};
@@ -91,7 +89,6 @@ namespace DSImager.Core.Services
             _cameraService.ConnectedCamera.BinX = (short)session.BinX;
             _cameraService.ConnectedCamera.BinY = (short)session.BinY;
 
-            // Todo check that the area isn't out of bounds, especially with binning on
             int rightBound = _cameraService.ConnectedCamera.CameraXSize;
             int bottomBound = _cameraService.ConnectedCamera.CameraYSize;
             if (session.AreaRect.X + session.AreaRect.Width > rightBound || session.AreaRect.X < 0)

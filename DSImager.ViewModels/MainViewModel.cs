@@ -7,6 +7,7 @@ using ASCOM.DeviceInterface;
 using DSImager.Core.Interfaces;
 using DSImager.Core.Models;
 using DSImager.Core.System;
+using DSImager.ViewModels.States;
 
 namespace DSImager.ViewModels
 {
@@ -200,6 +201,17 @@ namespace DSImager.ViewModels
             }
         }
 
+        private MainViewState _uiState = MainViewState.Idle;
+
+        public MainViewState UiState
+        {
+            get { return _uiState; }
+            set
+            {
+                SetNotifyingProperty(() => UiState, ref _uiState, value);
+            }
+        }
+
         private const int LogBufferSize = 30;
         private ObservableCollection<LogMessage> _logBuffer = new ObservableCollection<LogMessage>();
         /// <summary>
@@ -328,6 +340,7 @@ namespace DSImager.ViewModels
         private void PreviewExposure()
         {
             IsExposuring = true;
+            UiState = MainViewState.Previewing; // todo: map out the normal cycle of states. Do this before implementing stop/abort etc.
             _imagingService.TakeSingleExposure(SelectedPreviewExposure, SelectedBinningMode.Key, SelectedBinningMode.Key,
                 null);
         }
@@ -363,7 +376,6 @@ namespace DSImager.ViewModels
         private void OnExposureProgressChanged(double currentExposureDuration, double targetExposureDuration)
         {
             // Update the progress bar text and value.
-            // TODO: show pbar only when imaging is in progress
             CurrentExposureProgress = (int)(currentExposureDuration / targetExposureDuration * 100.0);
             var exposureNum = _imagingService.CurrentImageSequence.CurrentExposure + 1;
             var totalExposures = _imagingService.CurrentImageSequence.NumExposures;
@@ -385,6 +397,7 @@ namespace DSImager.ViewModels
 
         private void OnImagingComplete(bool successful, Exposure exposure)
         {
+            UiState = MainViewState.Idle;
             LastExposure = exposure;
         }
 

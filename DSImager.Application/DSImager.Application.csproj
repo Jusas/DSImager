@@ -76,6 +76,7 @@
     </ApplicationDefinition>
     <Compile Include="Controls\PreviewExposureSlider.cs" />
     <Compile Include="Controls\ZoomableBorder.cs" />
+    <Compile Include="Converters\ButtonStateContentConverter.cs" />
     <Compile Include="Converters\ComposingConverter.cs" />
     <Compile Include="Converters\ExposureToImageConverter.cs" />
     <Compile Include="Converters\ListItemFromIndexConverter.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="Converters\BrushForSelectionConverter.cs" />
     <Compile Include="Converters\SelectedListIndexItemToStringConverter.cs" />
     <Compile Include="Converters\VisibilityConverter.cs" />
+    <Compile Include="Utils\ButtonStateContent.cs" />
     <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Views\BaseView.cs" />
     <Compile Include="Bootstrapper.cs" />
@@ -163,7 +165,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="System\" />
+    <Folder Include="AppClasses\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

@@ -3,14 +3,18 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
+    xmlns:collections="clr-namespace:System.Collections.Generic;assembly=mscorlib"
     xmlns:viewModels="clr-namespace:DSImager.ViewModels;assembly=DSImager.ViewModels"
+    xmlns:viewModelStates="clr-namespace:DSImager.ViewModels.States;assembly=DSImager.ViewModels"
     xmlns:app="clr-namespace:DSImager.Application"
     xmlns:views="clr-namespace:DSImager.Application.Views"
     xmlns:media="clr-namespace:System.Windows.Media;assembly=PresentationCore"
     xmlns:converters="clr-namespace:DSImager.Application.Converters"
     xmlns:interaction="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:appcontrols="clr-namespace:DSImager.Application.Controls"
+    xmlns:utils="clr-namespace:DSImager.Application.Utils"
     xmlns:fa="http://schemas.fontawesome.io/icons/"
+    xmlns:collections1="clr-namespace:System.Collections;assembly=mscorlib"
     x:Class="DSImager.Application.Views.MainWindow"
     Title="{Binding ViewTitle}" Height="768" Width="1366" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
     WindowStartupLocation="CenterScreen">
@@ -29,7 +33,20 @@
                 <converters:NumberListDoubleCollectionConverter></converters:NumberListDoubleCollectionConverter>
             </converters:ComposingConverter.Converters>
         </converters:ComposingConverter>
+        <converters:ButtonStateContentConverter x:Key="ButtonStateContentConverter"></converters:ButtonStateContentConverter>
         
+        <utils:ButtonStateContent x:Key="PreviewButtonContent">
+            <!--
+            <utils:ButtonStateContent.StateContentPairs>
+                <system:String x:Key="{x:Static Member=viewModelStates:MainViewState.Idle}">&#xF030;</system:String>
+                <system:String x:Key="{x:Static Member=viewModelStates:MainViewState.Previewing}">&#xF04D;</system:String>
+            </utils:ButtonStateContent.StateContentPairs>
+            -->
+            <utils:ButtonStateContent.StateContentPairs>
+                <system:String x:Key="{x:Static viewModelStates:MainViewState.Idle}">&#xF030;</system:String>
+                <system:String x:Key="{x:Static viewModelStates:MainViewState.Previewing}">&#xF04D;</system:String>
+            </utils:ButtonStateContent.StateContentPairs>
+        </utils:ButtonStateContent>
     </controls:MetroWindow.Resources>
     <Grid x:Name="TopLevelGrid">
         <Grid.RowDefinitions>
@@ -68,7 +85,7 @@
             <ToolBar HorizontalAlignment="Left" FontSize="24">
                 <Label x:Name="label" Content="Preview" FontSize="14"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xF030;" 
+					Content="{Binding UiState, Converter={StaticResource ButtonStateContentConverter}, ConverterParameter={StaticResource PreviewButtonContent}}" 
 					Margin="4,0"
 					ToolTip="Take snapshot"
                     Command="{Binding PreviewExposureCommand}"
