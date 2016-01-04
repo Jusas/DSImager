@@ -1,6 +1,9 @@
 ﻿<views:BaseView
     x:TypeArguments="viewModels:MainViewModel" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:collections="clr-namespace:System.Collections.Generic;assembly=mscorlib"
@@ -20,6 +23,7 @@
     WindowStartupLocation="CenterScreen">
 
     <controls:MetroWindow.Resources>
+        <viewModels:MainViewModelDT x:Key="DesignViewModel"></viewModels:MainViewModelDT>
         <converters:ListToIndexListConverter x:Key="ListToIndexListConverter"></converters:ListToIndexListConverter>
         <converters:ListItemFromIndexConverter x:Key="ListItemFromIndexConverter"></converters:ListItemFromIndexConverter>
         <converters:ListLengthMinusOneConverter x:Key="ListLengthMinusOneConverter"></converters:ListLengthMinusOneConverter>
@@ -34,21 +38,21 @@
             </converters:ComposingConverter.Converters>
         </converters:ComposingConverter>
         <converters:ButtonStateContentConverter x:Key="ButtonStateContentConverter"></converters:ButtonStateContentConverter>
-        
+        <converters:MainViewUiStateToVisibilityConverter x:Key="MainViewUiStateToVisibilityConverter"></converters:MainViewUiStateToVisibilityConverter>
         <utils:ButtonStateContent x:Key="PreviewButtonContent">
-            <!--
-            <utils:ButtonStateContent.StateContentPairs>
-                <system:String x:Key="{x:Static Member=viewModelStates:MainViewState.Idle}">&#xF030;</system:String>
-                <system:String x:Key="{x:Static Member=viewModelStates:MainViewState.Previewing}">&#xF04D;</system:String>
-            </utils:ButtonStateContent.StateContentPairs>
-            -->
             <utils:ButtonStateContent.StateContentPairs>
                 <system:String x:Key="{x:Static viewModelStates:MainViewState.Idle}">&#xF030;</system:String>
                 <system:String x:Key="{x:Static viewModelStates:MainViewState.Previewing}">&#xF04D;</system:String>
             </utils:ButtonStateContent.StateContentPairs>
         </utils:ButtonStateContent>
+        <utils:ButtonStateContent x:Key="CaptureButtonContent">
+            <utils:ButtonStateContent.StateContentPairs>
+                <system:String x:Key="{x:Static viewModelStates:MainViewState.Idle}">&#xF030;</system:String>
+                <system:String x:Key="{x:Static viewModelStates:MainViewState.Capturing}">&#xF04D;</system:String>
+            </utils:ButtonStateContent.StateContentPairs>
+        </utils:ButtonStateContent>
     </controls:MetroWindow.Resources>
-    <Grid x:Name="TopLevelGrid">
+    <Grid x:Name="TopLevelGrid" d:DataContext="{d:DesignInstance Type=viewModels:MainViewModelDT, IsDesignTimeCreatable=True}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" x:Name="MainMenuItemRow"/>
             <RowDefinition Height="Auto" x:Name="MainToolBarRow"/>
@@ -66,20 +70,20 @@
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xF0C7;" 
 					Margin="4,0"
-					ToolTip="Save visible frame"/>
+					ToolTip="Save visible frame" Foreground="White"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xF013;" 
 					Margin="4,0"
-					ToolTip="Settings"/>
+					ToolTip="Settings" Foreground="White"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xF06D;" 
 					Margin="4,0"
-					ToolTip="Temperature controls"/>
+					ToolTip="Temperature controls" Foreground="White"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xF05A;" 
 					Margin="4,0"
 					ToolTip="Camera information"
-                        Command="{Binding OpenDeviceInfoDialogCommand}"/>
+                        Command="{Binding OpenDeviceInfoDialogCommand}" Foreground="White"/>
                 <!-- information about the connected camera -->
             </ToolBar>
             <ToolBar HorizontalAlignment="Left" FontSize="24">
@@ -88,7 +92,7 @@
 					Content="{Binding UiState, Converter={StaticResource ButtonStateContentConverter}, ConverterParameter={StaticResource PreviewButtonContent}}" 
 					Margin="4,0"
 					ToolTip="Take snapshot"
-                    Command="{Binding PreviewExposureCommand}"
+                    Command="{Binding PreviewExposureCommand}" Foreground="White"
                         />
                 <!-- video camera f03d -->
                 <!-- stop f04d -->
@@ -163,7 +167,8 @@
                 <CheckBox FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xF01E;"
 					Margin="4,0" 
-					ToolTip="Toggle continuous exposure" />
+					ToolTip="Toggle continuous exposure" Foreground="White" 
+                    IsChecked="{Binding IsPreviewRepeating}"/>
                 <Button FontFamily="{DynamicResource FontAwesome}"
                     Content="{Binding}"
 					ToolTip="Binning" 
@@ -214,15 +219,23 @@
 
             </ToolBar>
             <ToolBar HorizontalAlignment="Left" FontSize="24">
-                <Label Content="Capture" FontSize="14"/>
+                <Label Content="Image" FontSize="14"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xF0AE;" 
+					Content="&#xf1fe;" 
 					Margin="4,0"
-					ToolTip="Manage profiles"/>
+					ToolTip="Histogram" Foreground="White"/>
+            </ToolBar>
+            <ToolBar HorizontalAlignment="Left" FontSize="24">
+                <Label Content="Capture Session" FontSize="14"/>                
                 <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xF030;" 
+					Content="{Binding UiState, Converter={StaticResource ButtonStateContentConverter}, ConverterParameter={StaticResource CaptureButtonContent}}" 
 					Margin="4,0"
-					ToolTip="Select a profile and begin capturing"/>
+					ToolTip="Select a profile and begin capturing" Foreground="White"/>
+                <Button FontFamily="{DynamicResource FontAwesome}" 
+					Content="&#xF04C;" 
+					Margin="4,0"
+					ToolTip="Manage profiles" Foreground="White" Visibility="{Binding UiState, Converter={StaticResource MainViewUiStateToVisibilityConverter}, ConverterParameter={x:Static viewModelStates:MainViewState.Capturing}}"
+                    Command="{Binding PauseCaptureCommand}" />
             </ToolBar>
         </ToolBarPanel>
         <Canvas Grid.Row="2" Name="ContentAreaCanvas">

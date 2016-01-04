@@ -123,6 +123,15 @@ namespace DSImager.Core.Services
             
         }
 
+        public void CancelCurrentImagingOperation()
+        {
+            // If we're exposuring, stop it if camera supports stopping, otherwise abort
+            if (_cameraService.IsExposuring)
+            {
+                _cameraService.StopOrAbortExposure();
+            }
+        }
+
         private void OnExposureCompleted(bool successful, Exposure exposure)
         {
             if (OnImagingComplete != null)

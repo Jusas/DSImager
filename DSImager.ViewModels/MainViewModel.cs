@@ -231,7 +231,6 @@ namespace DSImager.ViewModels
         #region PUBLIC METHODS
         //-------------------------------------------------------------------------------------------------------
 
-
         public MainViewModel(ILogService logService, ICameraService cameraService, IImagingService imagingService, 
             IViewProvider viewProvider, IApplication application)
             : base(logService)
@@ -339,10 +338,25 @@ namespace DSImager.ViewModels
 
         private void PreviewExposure()
         {
-            IsExposuring = true;
-            UiState = MainViewState.Previewing; // todo: map out the normal cycle of states. Do this before implementing stop/abort etc.
-            _imagingService.TakeSingleExposure(SelectedPreviewExposure, SelectedBinningMode.Key, SelectedBinningMode.Key,
-                null);
+            // If already previewing, we mean to stop/abort capturing.
+            if (UiState == MainViewState.Previewing)
+            {
+                IsPreviewRepeating = false;
+                _imagingService.CancelCurrentImagingOperation();                
+            }
+            else if(UiState == MainViewState.Idle)
+            {
+                IsExposuring = true;
+                UiState = MainViewState.Previewing; // todo: map out the normal cycle of states. Do this before implementing stop/abort etc.
+                _imagingService.TakeSingleExposure(SelectedPreviewExposure, SelectedBinningMode.Key, SelectedBinningMode.Key,
+                    null);    
+            }
+            
+        }
+
+        private void PauseCapture()
+        {
+            
         }
 
         // Event handlers
@@ -391,14 +405,22 @@ namespace DSImager.ViewModels
             // TODO: Set IsExposuring to false but only if it was the last image of the session?
             IsExposuring = false;
             CurrentExposureProgress = 0;
-            ExposureStatusText = "";           
+            ExposureStatusText = "";
         }
 
 
         private void OnImagingComplete(bool successful, Exposure exposure)
         {
-            UiState = MainViewState.Idle;
             LastExposure = exposure;
+            if (UiState == MainViewState.Previewing && IsPreviewRepeating)
+            {
+                UiState = MainViewState.Idle;
+                PreviewExposure();
+            }
+            else
+            {
+                UiState = MainViewState.Idle;
+            }
         }
 
         #endregion
@@ -410,9 +432,24 @@ namespace DSImager.ViewModels
         public ICommand OpenDeviceInfoDialogCommand { get { return new CommandHandler(OpenDeviceInfoDialog); } }
         public ICommand SetBinningCommand { get { return new CommandHandler(SetBinning); } }
         public ICommand PreviewExposureCommand { get { return new CommandHandler(PreviewExposure); } }
-
+        public ICommand PauseCaptureCommand { get { return new CommandHandler(PauseCapture); } }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Mockup, for design time use only - to satisfy the need of parameterless constructor for the DataContext
+    /// and to enable design time visual feedback.
+    /// </summary>
+    public class MainViewModelDT : MainViewModel
+    {
+        public MainViewModelDT() : base(null, null, null, null, null)
+        {
+            
+        }
+        public MainViewModelDT(ILogService logService, ICameraService cameraService, IImagingService imagingService, IViewProvider viewProvider, IApplication application) : base(logService, cameraService, imagingService, viewProvider, application)
+        {
+        }
     }
 }
 // http://stackoverflow.com/questions/7877532/wpf-event-binding-from-view-to-viewmodel

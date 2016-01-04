@@ -9,7 +9,8 @@ namespace DSImager.ViewModels.States
     public enum MainViewState
     {
         Idle,
-        Previewing
+        Previewing,
+        Capturing
     }
     
     /*public class MainViewState : ViewState

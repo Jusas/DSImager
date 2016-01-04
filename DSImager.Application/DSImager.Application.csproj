@@ -87,6 +87,7 @@
     <Compile Include="Converters\CompareAndConvertToBooleanConverter.cs" />
     <Compile Include="Converters\BrushForSelectionConverter.cs" />
     <Compile Include="Converters\SelectedListIndexItemToStringConverter.cs" />
+    <Compile Include="Converters\MainViewUiStateToVisibilityConverter.cs" />
     <Compile Include="Converters\VisibilityConverter.cs" />
     <Compile Include="Utils\ButtonStateContent.cs" />
     <Compile Include="Utils\ListExtensions.cs" />

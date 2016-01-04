@@ -187,6 +187,18 @@ namespace DSImager.Core.Services
 
         }
 
+        public void StopOrAbortExposure()
+        {
+            if (_camera.CanStopExposure)
+            {
+                StopExposure();
+            }
+            else
+            {
+                AbortExposure();
+            }
+        }
+
         public void StopExposure()
         {
             if(!_camera.CanStopExposure)

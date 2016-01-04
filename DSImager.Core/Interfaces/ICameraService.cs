@@ -29,6 +29,7 @@ namespace DSImager.Core.Interfaces
         Task<bool> StartExposure(double duration, bool isDarkFrame = false);
         void StopExposure();
         void AbortExposure();
+        void StopOrAbortExposure();
 
 
 

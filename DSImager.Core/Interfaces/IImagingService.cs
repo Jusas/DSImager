@@ -20,5 +20,6 @@ namespace DSImager.Core.Interfaces
         ImagingSession CurrentImagingSession { get; set; }
         Task<bool> TakeSingleExposure(double duration, int binX, int binY, Rect? areaRect);
         Task<bool> BeginImagingSession(ImagingSession session);
+        void CancelCurrentImagingOperation();
     }
 }
