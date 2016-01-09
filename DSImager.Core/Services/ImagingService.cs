@@ -28,10 +28,18 @@ namespace DSImager.Core.Services
 
         public ImagingSession CurrentImagingSession { get; set; }
 
+        public ExposureVisualSettings ExposureVisualProcessingSettings { get; set; }
+
         public ImagingService(ICameraService cameraService, ILogService logService)
         {
             _cameraService = cameraService;
             _logService = logService;
+            ExposureVisualProcessingSettings = new ExposureVisualSettings()
+            {
+                AutoStretch = true,
+                StretchMin = 0,
+                StretchMax = -1
+            };
             DarkFrameMode = false; 
         }
 
@@ -134,6 +142,24 @@ namespace DSImager.Core.Services
 
         private void OnExposureCompleted(bool successful, Exposure exposure)
         {
+            if (!ExposureVisualProcessingSettings.AutoStretch)
+            {
+                var min = ExposureVisualProcessingSettings.StretchMin;
+                var max = ExposureVisualProcessingSettings.StretchMax;
+                // No auto stretch, make sure we don't have initial conditions 
+                // (default min/max), if values are non-default then apply stretch.
+                if (!(min == 0 && (max == -1 || max == exposure.MaxDepth)))
+                {
+                    if (max == -1)
+                        max = exposure.MaxDepth;
+                    exposure.SetStretch(min, max);
+                }
+            }
+            else
+            {
+                exposure.SetStretch();
+            }
+            
             if (OnImagingComplete != null)
                 OnImagingComplete(successful, exposure);
         }

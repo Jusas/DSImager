@@ -113,6 +113,9 @@ namespace DSImager.Core.Services
         {
             _isExposuring = true;
 
+            _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational,
+                    string.Format("Starting new exposure: {0:F}s", duration)));
+
             if (_camera.CameraState != CameraStates.cameraIdle)
             {
                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Warning, 
@@ -131,18 +134,25 @@ namespace DSImager.Core.Services
 
 
             var startTime = DateTime.Now;
+            TimeSpan currentDuration = TimeSpan.Zero;
             while (!_camera.ImageReady && (_camera.CameraState != CameraStates.cameraExposing ||
                     _camera.CameraState != CameraStates.cameraReading))
             {
                 await Task.Delay(200);
-                var currentDuration = DateTime.Now - startTime;
+                currentDuration = DateTime.Now - startTime;
                 if (OnExposureProgressChanged != null)
-                    OnExposureProgressChanged(currentDuration.TotalSeconds, duration);
+                    OnExposureProgressChanged(currentDuration.TotalSeconds, duration, ExposurePhase.Exposuring);
             }
 
             // Done, download the image.
             if (_camera.ImageReady)
             {
+                if (OnExposureProgressChanged != null)
+                    OnExposureProgressChanged(currentDuration.TotalSeconds, duration, ExposurePhase.Downloading);
+
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational,
+                    "Exposure ready, downloading..."));
+
                 int[,] imgArr = (int[,]) _camera.ImageArray;
                 int imageW = imgArr.GetLength(0);
                 int imageH = imgArr.GetLength(1);
@@ -161,12 +171,15 @@ namespace DSImager.Core.Services
                 }
                 
 
-                Exposure exposure = new Exposure(imageW, imageH, pixelArr, _camera.MaxADU, true);
+                Exposure exposure = new Exposure(imageW, imageH, pixelArr, _camera.MaxADU, false);
                 metadata.ExposureTime = _camera.LastExposureDuration;
                 exposure.MetaData = metadata;
                 _exposure = exposure;
 
                 _isExposuring = false;
+
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational,
+                    "Exposure done."));
 
                 if (OnExposureCompleted != null)
                     OnExposureCompleted(true, exposure);
@@ -176,6 +189,9 @@ namespace DSImager.Core.Services
             // The exposure was aborted and image could not be retrieved.
             else
             {
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Warning,
+                    "Exposure done but image not ready, exposure must have been aborted."));
+
                 _isExposuring = false;
 
                 if (OnExposureCompleted != null)

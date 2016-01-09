@@ -27,7 +27,7 @@ namespace DSImager.Tests
         [Test]
         public async Task TakeSuccessfulExposure()
         {
-            _cameraService.OnExposureProgressChanged += delegate(double duration, double exposureDuration)
+            _cameraService.OnExposureProgressChanged += delegate(double duration, double exposureDuration, ExposurePhase phase)
             {
                 Console.WriteLine(duration);
             };
@@ -46,7 +46,7 @@ namespace DSImager.Tests
         [Test]
         public async Task TakeAndStopExposure()
         {
-            _cameraService.OnExposureProgressChanged += delegate(double duration, double exposureDuration)
+            _cameraService.OnExposureProgressChanged += delegate(double duration, double exposureDuration, ExposurePhase phase)
             {
                 Console.WriteLine(duration);
             };

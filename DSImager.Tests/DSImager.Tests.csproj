@@ -67,6 +67,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DSImager.Application\DSImager.Application.csproj">
+      <Project>{63c7c984-d35b-4f26-862b-d41fe2a5469c}</Project>
+      <Name>DSImager.Application</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DSImager.Core\DSImager.Core.csproj">
       <Project>{2ddbdbe7-a1be-4d8c-ae8a-a7195474eff5}</Project>
       <Name>DSImager.Core</Name>
@@ -75,6 +79,9 @@
       <Project>{ad674cd0-866c-42f8-9c16-aa3c6a2275de}</Project>
       <Name>DSImager.ViewModels</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Views\" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

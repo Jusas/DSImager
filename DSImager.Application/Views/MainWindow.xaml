@@ -223,7 +223,9 @@
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xf1fe;" 
 					Margin="4,0"
-					ToolTip="Histogram" Foreground="White"/>
+					ToolTip="Histogram" Foreground="White"
+                        Command="{Binding OpenHistogramDialogCommand}"
+                        />
             </ToolBar>
             <ToolBar HorizontalAlignment="Left" FontSize="24">
                 <Label Content="Capture Session" FontSize="14"/>                

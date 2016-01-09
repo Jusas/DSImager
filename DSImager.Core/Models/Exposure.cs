@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,10 @@ namespace DSImager.Core.Models
 {
     public class Exposure
     {
+
+        public delegate void HistogramStretchChangedHandler();
+        public event HistogramStretchChangedHandler OnHistogramStretchChanged;
+
         private int[] _pixels;
 
         public int[] Pixels { get { return _pixels; } }
@@ -18,6 +23,11 @@ namespace DSImager.Core.Models
 
         private int _pixelMinValue = int.MaxValue;
         private int _pixelMaxValue = int.MinValue;
+
+        private int _stretchMin = 0;
+        public int StretchMin { get { return _stretchMin; } }
+        private int _stretchMax = 0;
+        public int StretchMax { get { return _stretchMax; } }
 
         public byte[] Pixels8Bit { get; private set; }
         public SortedDictionary<int, int> Histogram { get; private set; }
@@ -33,12 +43,33 @@ namespace DSImager.Core.Models
 
             CreateHistogram();
             Pixels8Bit = new byte[Width * Height];
-            CreateStretched8BitImageByteArray(autoStretch ? _pixelMinValue : 0, autoStretch ? _pixelMaxValue : MaxDepth);
+            _stretchMin = autoStretch ? _pixelMinValue : 0;
+            _stretchMax = autoStretch ? _pixelMaxValue : MaxDepth;
+            CreateStretched8BitImageByteArray(_stretchMin, _stretchMax);
         }
 
-        public void SetStretch(int stretchStart, int stretchEnd)
+        public void SetStretch(int stretchStart = -1, int stretchEnd = -1)
         {
+            if (stretchStart == -1 && stretchEnd == -1)
+            {
+                _stretchMin = _pixelMinValue;
+                _stretchMax = _pixelMaxValue;
+                CreateStretched8BitImageByteArray(_pixelMinValue, _pixelMaxValue);
+                if (OnHistogramStretchChanged != null)
+                    OnHistogramStretchChanged();
+                return;
+            }
+
+            if (_stretchMin == stretchStart && _stretchMax == stretchEnd)
+                return;
+
+            _stretchMin = stretchStart;
+            _stretchMax = stretchEnd;
             CreateStretched8BitImageByteArray(stretchStart, stretchEnd);
+
+            if (OnHistogramStretchChanged != null)
+                OnHistogramStretchChanged();
+
         }
         
         private unsafe void CreateHistogram()
@@ -90,9 +121,6 @@ namespace DSImager.Core.Models
             }
 
         }
-
         
-        
-
     }
 }

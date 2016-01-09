@@ -8,8 +8,14 @@ using DSImager.Core.Models;
 
 namespace DSImager.Core.Interfaces
 {
+    public enum ExposurePhase
+    {
+        Exposuring,
+        Downloading
+    }
+
     public delegate void CameraChosenHandler(string cameraName);
-    public delegate void ExposureProgressChangedHandler(double currentExposureDuration, double targetExposureDuration);
+    public delegate void ExposureProgressChangedHandler(double currentExposureDuration, double targetExposureDuration, ExposurePhase phase);
     public delegate void ExposureCompletedHandler(bool successful, Exposure exposure);
 
     public interface ICameraService

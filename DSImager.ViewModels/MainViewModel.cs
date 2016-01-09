@@ -68,6 +68,11 @@ namespace DSImager.ViewModels
         /// </summary>
         private IView<DeviceInfoViewModel> _deviceInfoDialog;
 
+        /// <summary>
+        /// Reference to the histogram dialog instance (injected).
+        /// </summary>
+        private IView<HistogramDialogViewModel> _histogramDialog;
+
         private int _selectedPreviewExposureIndex = 0;
         /// <summary>
         /// The index of the selected preview exposure option - corresponds to
@@ -80,6 +85,8 @@ namespace DSImager.ViewModels
             {
                 SetNotifyingProperty(() => SelectedPreviewExposureIndex, ref _selectedPreviewExposureIndex, value);
                 SetNotifyingProperty(() => SelectedPreviewExposure);
+                // Cancel any ongoing exposure when the value is changed.
+                _imagingService.CancelCurrentImagingOperation();
             }
         }
 
@@ -329,6 +336,13 @@ namespace DSImager.ViewModels
             _deviceInfoDialog.Show();
         }
 
+        private void OpenHistogramDialog()
+        {
+            if (_histogramDialog == null || _histogramDialog.WasClosed)
+                _histogramDialog = _viewProvider.Instantiate<HistogramDialogViewModel>();
+            _histogramDialog.Show();
+        }
+
         private void SetBinning(object binningModeOption)
         {
             KeyValuePair<int, string> b = (KeyValuePair<int, string>) binningModeOption;
@@ -387,7 +401,7 @@ namespace DSImager.ViewModels
             _logBuffer.Insert(0, logMessage);
         }
 
-        private void OnExposureProgressChanged(double currentExposureDuration, double targetExposureDuration)
+        private void OnExposureProgressChanged(double currentExposureDuration, double targetExposureDuration, ExposurePhase phase)
         {
             // Update the progress bar text and value.
             CurrentExposureProgress = (int)(currentExposureDuration / targetExposureDuration * 100.0);
@@ -396,8 +410,16 @@ namespace DSImager.ViewModels
             double remainingExposureTime = (totalExposures - exposureNum + 1) *
                                            _imagingService.CurrentImageSequence.ExposureDuration - currentExposureDuration;
             var remainingStr = TimeSpan.FromSeconds(remainingExposureTime).ToString("hh\\:mm\\:ss");
-            ExposureStatusText = string.Format("Exposure {0}/{1} | Progress: {2}% | Total Time Remaining: {3}",
-                exposureNum, totalExposures, CurrentExposureProgress, remainingStr);
+            if (phase == ExposurePhase.Exposuring)
+            {
+                ExposureStatusText = string.Format("Exposure {0}/{1} | Progress: {2}% | Total Time Remaining: {3}",
+                    exposureNum, totalExposures, CurrentExposureProgress, remainingStr);    
+            }
+            else if (phase == ExposurePhase.Downloading)
+            {
+                ExposureStatusText = string.Format("Exposure {0}/{1} | Downloading... | Total Time Remaining: {2}",
+                    exposureNum, totalExposures, remainingStr);    
+            }
         }
 
         private void OnExposureCompleted(bool successful, Exposure exposure)
@@ -411,7 +433,12 @@ namespace DSImager.ViewModels
 
         private void OnImagingComplete(bool successful, Exposure exposure)
         {
+            if(LastExposure != null)
+                LastExposure.OnHistogramStretchChanged -= OnExposureHistogramStretchChanged;
+
             LastExposure = exposure;
+            LastExposure.OnHistogramStretchChanged += OnExposureHistogramStretchChanged;
+
             if (UiState == MainViewState.Previewing && IsPreviewRepeating)
             {
                 UiState = MainViewState.Idle;
@@ -423,6 +450,14 @@ namespace DSImager.ViewModels
             }
         }
 
+        private void OnExposureHistogramStretchChanged()
+        {
+            // This will notify that the exposure has changed (although it really hasn't,
+            // only its 8-bit pixel values have) to trigger the converter to update the
+            // visual image.
+            SetNotifyingProperty(() => LastExposure);
+        }
+
         #endregion
 
         //-------------------------------------------------------------------------------------------------------
@@ -430,6 +465,7 @@ namespace DSImager.ViewModels
         //-------------------------------------------------------------------------------------------------------
 
         public ICommand OpenDeviceInfoDialogCommand { get { return new CommandHandler(OpenDeviceInfoDialog); } }
+        public ICommand OpenHistogramDialogCommand { get { return new CommandHandler(OpenHistogramDialog); } }
         public ICommand SetBinningCommand { get { return new CommandHandler(SetBinning); } }
         public ICommand PreviewExposureCommand { get { return new CommandHandler(PreviewExposure); } }
         public ICommand PauseCaptureCommand { get { return new CommandHandler(PauseCapture); } }

@@ -16,8 +16,9 @@ namespace DSImager.Core.Interfaces
         event ImagingCompletedHandler OnImagingComplete;
 
         bool DarkFrameMode { get; set; }
-        ImageSequence CurrentImageSequence { get; set; }
-        ImagingSession CurrentImagingSession { get; set; }
+        ImageSequence CurrentImageSequence { get; }
+        ImagingSession CurrentImagingSession { get; }
+        ExposureVisualSettings ExposureVisualProcessingSettings { get; }
         Task<bool> TakeSingleExposure(double duration, int binX, int binY, Rect? areaRect);
         Task<bool> BeginImagingSession(ImagingSession session);
         void CancelCurrentImagingOperation();

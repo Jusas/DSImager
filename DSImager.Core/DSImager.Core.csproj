@@ -75,6 +75,7 @@
     <Compile Include="Models\CameraInfo.cs" />
     <Compile Include="Models\Exposure.cs" />
     <Compile Include="Models\ExposureMetaData.cs" />
+    <Compile Include="Models\ExposureVisualSettings.cs" />
     <Compile Include="Models\ImageSequence.cs" />
     <Compile Include="Models\ImagingSession.cs" />
     <Compile Include="Models\LogMessage.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="System\PpmWriter.cs" />
     <Compile Include="System\Rect.cs" />
     <Compile Include="System\ViewProvider.cs" />
+    <Compile Include="System\XY.cs" />
     <Compile Include="Utils\PropertyChangedExtendedEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>
