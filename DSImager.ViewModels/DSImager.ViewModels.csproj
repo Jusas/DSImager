@@ -53,6 +53,7 @@
     <Compile Include="ConnectDialogViewModel.cs" />
     <Compile Include="DeviceInfoViewModel.cs" />
     <Compile Include="MainViewModel.cs" />
+    <Compile Include="SessionDialogViewModel.cs" />
     <Compile Include="States\IViewState.cs" />
     <Compile Include="States\MainViewState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

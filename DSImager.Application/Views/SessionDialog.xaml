@@ -1,0 +1,16 @@
+﻿<views:BaseView x:TypeArguments="viewModels:SessionDialogViewModel" x:Class="DSImager.Application.Views.SessionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:viewModels="clr-namespace:DSImager.ViewModels;assembly=DSImager.ViewModels"
+        xmlns:views="clr-namespace:DSImager.Application.Views"
+        xmlns:converters="clr-namespace:DSImager.Application.Converters"
+        Title="SessionDialog" Height="300" Width="300" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+        BorderBrush="Black" BorderThickness="1"
+        WindowStartupLocation="CenterScreen">
+    <Grid d:DataContext="{d:DesignInstance Type=viewModels:SessionDialogViewModelDT, IsDesignTimeCreatable=True}">
+        
+    </Grid>
+</views:BaseView>

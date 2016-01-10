@@ -59,19 +59,25 @@ namespace DSImager.ViewModels
         private IImagingService _imagingService;
 
         /// <summary>
-        /// Reference to a connect dialog instance (injected).
+        /// Reference to a connect dialog instance
         /// </summary>
         private IView<ConnectDialogViewModel> _connectDialog;
 
         /// <summary>
-        /// Reference to a device info dialog instance (injected).
+        /// Reference to a device info dialog instance
         /// </summary>
         private IView<DeviceInfoViewModel> _deviceInfoDialog;
 
         /// <summary>
-        /// Reference to the histogram dialog instance (injected).
+        /// Reference to the histogram dialog instance
         /// </summary>
         private IView<HistogramDialogViewModel> _histogramDialog;
+
+        /// <summary>
+        /// Reference to the session dialog instance
+        /// </summary>
+        private IView<SessionDialogViewModel> _sessionDialog;
+
 
         private int _selectedPreviewExposureIndex = 0;
         /// <summary>
@@ -228,7 +234,7 @@ namespace DSImager.ViewModels
 
         public LogMessage LastLogMessage
         {
-            get { return LogMessages.Count > 0 ? LogMessages[0] : new LogMessage(null, LogEventCategory.Informational, ""); }
+            get { return LogMessages.Count > 0 ? LogMessages[0] : new LogMessage(null, LogEventCategory.Informational, "Ready"); }
         }
 
         #endregion
@@ -249,7 +255,7 @@ namespace DSImager.ViewModels
             ViewTitle = "DSImager";
 
             LogMessages.CollectionChanged += (sender, args) => SetNotifyingProperty(() => LastLogMessage);
-            LogMessages.Add(new LogMessage(null, LogEventCategory.Informational, ""));
+            LogMessages.Add(new LogMessage(null, LogEventCategory.Informational, "Starting up"));
         }
 
 
@@ -341,6 +347,18 @@ namespace DSImager.ViewModels
             if (_histogramDialog == null || _histogramDialog.WasClosed)
                 _histogramDialog = _viewProvider.Instantiate<HistogramDialogViewModel>();
             _histogramDialog.Show();
+        }
+
+        private void OpenLogFile()
+        {
+            System.Diagnostics.Process.Start(LogService.LogFile);
+        }
+
+        private void OpenSessionDialog()
+        {
+            if (_sessionDialog == null || _sessionDialog.WasClosed)
+                _sessionDialog = _viewProvider.Instantiate<SessionDialogViewModel>();
+            _sessionDialog.Show();
         }
 
         private void SetBinning(object binningModeOption)
@@ -458,6 +476,7 @@ namespace DSImager.ViewModels
             SetNotifyingProperty(() => LastExposure);
         }
 
+
         #endregion
 
         //-------------------------------------------------------------------------------------------------------
@@ -469,6 +488,8 @@ namespace DSImager.ViewModels
         public ICommand SetBinningCommand { get { return new CommandHandler(SetBinning); } }
         public ICommand PreviewExposureCommand { get { return new CommandHandler(PreviewExposure); } }
         public ICommand PauseCaptureCommand { get { return new CommandHandler(PauseCapture); } }
+        public ICommand OpenLogFileCommand { get { return new CommandHandler(OpenLogFile); } }
+        public ICommand OpenSessionDialogCommand { get { return new CommandHandler(OpenSessionDialog); } }
 
         #endregion
     }

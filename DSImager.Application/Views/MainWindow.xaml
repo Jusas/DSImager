@@ -228,11 +228,12 @@
                         />
             </ToolBar>
             <ToolBar HorizontalAlignment="Left" FontSize="24">
-                <Label Content="Capture Session" FontSize="14"/>                
+                <Label Content="Capture Session" FontSize="14"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					Content="{Binding UiState, Converter={StaticResource ButtonStateContentConverter}, ConverterParameter={StaticResource CaptureButtonContent}}" 
 					Margin="4,0"
-					ToolTip="Select a profile and begin capturing" Foreground="White"/>
+					ToolTip="Select a profile and begin capturing" Foreground="White"
+                    Command="{Binding OpenSessionDialogCommand}"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xF04C;" 
 					Margin="4,0"
@@ -251,7 +252,7 @@
                 </Border>
             </appcontrols:ZoomableBorder>
         </Canvas>
-        <StatusBar HorizontalAlignment="Left" Height="30" Grid.Row="3" VerticalAlignment="Top" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Background="#FF343434">
+        <StatusBar x:Name="statusBar" HorizontalAlignment="Left" Height="30" Grid.Row="3" VerticalAlignment="Top" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Background="#FF343434">
             <Grid Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"></ColumnDefinition>
@@ -259,8 +260,8 @@
                     <ColumnDefinition Width="3*"></ColumnDefinition>
                     <ColumnDefinition Width="3*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Content="&#x00ab; Log &#x00bb;" BorderBrush="#00CCCCCC"></Button>
-                <Button Grid.Column="1" HorizontalContentAlignment="Left" BorderBrush="#00CCCCCC" Content="{Binding}">
+                <Button Grid.Column="0" Content="&#x00ab; Log &#x00bb;" BorderBrush="#00CCCCCC" Command="{Binding OpenLogFileCommand}"></Button>
+                <Button Grid.Column="1" HorizontalContentAlignment="Left" BorderBrush="#00CCCCCC" Content="{Binding}" Name="LatestLogButton" Click="OnLatestLogButtonClicked">
                     <Button.ContentTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="0">
@@ -273,9 +274,38 @@
                             </StackPanel>
                         </DataTemplate>
                     </Button.ContentTemplate>
+                    <Button.ContextMenu>
+                        <ContextMenu HasDropShadow="False" BorderBrush="Transparent" BorderThickness="1" Background="#A0000000">
+                            <MenuItem Background="#00000000">
+                                <MenuItem.Template>
+                                    <ControlTemplate TargetType="{x:Type MenuItem}">
+                                        <ScrollViewer Margin="15" Height="200" Width="{Binding ActualWidth, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}" PreviewMouseWheel="OnLogListMouseWheel">
+                                            <ListView ItemsSource="{Binding LogMessages}" Background="#00000000" BorderThickness="0">
+                                                <ListView.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal" Margin="0" Background="#00000000">
+                                                            <fa:FontAwesome Icon="{Binding Path=Category, Converter={StaticResource LogCategoryToIconConverter}}" FontFamily="{DynamicResource FontAwesome}" FontSize="14" Margin="0,6,0,0"></fa:FontAwesome>
+                                                            <TextBlock Margin="15,0,0,0" FontSize="11" VerticalAlignment="Center">
+                                                                <TextBlock.Text>
+                                                                    <MultiBinding StringFormat="{}[{0}] {1}">
+                                                                        <Binding Path="DateString"></Binding>
+                                                                        <Binding Path="Message"></Binding>
+                                                                    </MultiBinding>
+                                                                </TextBlock.Text>
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ListView.ItemTemplate>
+                                            </ListView>
+                                        </ScrollViewer>
+                                    </ControlTemplate>
+                                </MenuItem.Template>
+                            </MenuItem>
+                        </ContextMenu>
+                    </Button.ContextMenu>
                 </Button>
             </Grid>
-            
+
         </StatusBar>
 
 

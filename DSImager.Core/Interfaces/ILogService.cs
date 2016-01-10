@@ -26,6 +26,11 @@ namespace DSImager.Core.Interfaces
         object GlobalLogSource { get; }
 
         /// <summary>
+        /// The log file itself (file name)
+        /// </summary>
+        string LogFile { get; }
+
+        /// <summary>
         /// A simple trace to the log file and to console.
         /// </summary>
         /// <param name="category"></param>

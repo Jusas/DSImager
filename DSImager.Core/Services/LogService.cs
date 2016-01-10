@@ -24,10 +24,13 @@ namespace DSImager.Core.Services
         private FileStream _stream;
         private StreamWriter _streamWriter;
 
+        private readonly object _mutex = new object();
         private readonly object _globalLogSource = new object();
         public object GlobalLogSource { get { return _globalLogSource; } }
 
         private Dictionary<object, List<HandlerCategoryPair>> _handlers = new Dictionary<object, List<HandlerCategoryPair>>();
+
+        public string LogFile { get; private set; }
 
         #endregion
 
@@ -38,27 +41,31 @@ namespace DSImager.Core.Services
 
         public LogService()
         {
+            var appSettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "DSImager");
+            LogFile = Path.Combine(appSettingsFolder, _filename);
             OpenLogForWriting();
         }
         
         public void Trace(LogEventCategory category, string message)
         {
-            var now = DateTime.Now;
-            var formatted = string.Format("[{0:D2}:{1:D2}:{2:D2}.{3:D3}] [{4}] {5}",
-                now.Hour, now.Minute, now.Second, now.Millisecond,
-                category, message);
+            lock (_mutex)
+            {
+                var now = DateTime.Now;
+                var formatted = string.Format("[{0:D2}:{1:D2}:{2:D2}.{3:D3}] [{4}] {5}",
+                    now.Hour, now.Minute, now.Second, now.Millisecond,
+                    category, message);
 
-            Console.WriteLine(formatted);
-            _streamWriter.WriteLine(formatted);
-            _streamWriter.Flush();
+                Console.WriteLine(formatted);
+                _streamWriter.WriteLine(formatted);
+                _streamWriter.Flush();
+            }
         }
 
 
         private void OpenLogForWriting()
         {
-            var appSettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "DSImager");
-            var logFile = Path.Combine(appSettingsFolder, _filename);
+            var appSettingsFolder = Path.GetDirectoryName(LogFile);
 
             if (!Directory.Exists(appSettingsFolder))
             {
@@ -66,7 +73,7 @@ namespace DSImager.Core.Services
             }
 
             var now = DateTime.Now;
-            _stream = File.Open(logFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
+            _stream = File.Open(LogFile, FileMode.Truncate, FileAccess.Write, FileShare.Read);
             
             _streamWriter = new StreamWriter(_stream);
             _streamWriter.WriteLine("====================================================================");
@@ -92,19 +99,22 @@ namespace DSImager.Core.Services
 
         public void LogMessage(LogMessage logMessage)
         {
-            Trace(logMessage.Category, logMessage.Message);
-
-            if (_handlers.ContainsKey(logMessage.EventSource) || _handlers.ContainsKey(GlobalLogSource))
+            lock (_mutex)
             {
-                var handlerList =
-                    _handlers.Where(h => h.Key == logMessage.EventSource || h.Key == GlobalLogSource)
-                        .SelectMany(h => h.Value);
-                //var handlerList = _handlers[logMessage.EventSource];
-                foreach (var h in handlerList)
+                Trace(logMessage.Category, logMessage.Message);
+
+                if (_handlers.ContainsKey(logMessage.EventSource) || _handlers.ContainsKey(GlobalLogSource))
                 {
-                    if ((h.Categories & logMessage.Category) > 0)
+                    var handlerList =
+                        _handlers.Where(h => h.Key == logMessage.EventSource || h.Key == GlobalLogSource)
+                            .SelectMany(h => h.Value);
+                    //var handlerList = _handlers[logMessage.EventSource];
+                    foreach (var h in handlerList)
                     {
-                        h.Handler(logMessage);
+                        if ((h.Categories & logMessage.Category) > 0)
+                        {
+                            h.Handler(logMessage);
+                        }
                     }
                 }
             }
@@ -112,51 +122,55 @@ namespace DSImager.Core.Services
 
         public void Subscribe(object logSource, LogEventCategory categories, LogMessageHandler handler)
         {
-            if (handler == null)
-                throw new ArgumentNullException("handler");
-            if (logSource == null)
-                throw new ArgumentNullException("logSource");
-
-            if (!_handlers.ContainsKey(logSource))
-                _handlers.Add(logSource, new List<HandlerCategoryPair>());
-
-            var handlerCategoryPair = _handlers[logSource].Where(i => i.Handler == handler).FirstOrDefault();
-            if (handlerCategoryPair != null)
-                handlerCategoryPair.Categories |= categories;
-            else
+            lock (_mutex)
             {
-                handlerCategoryPair = new HandlerCategoryPair() {Categories = categories, Handler = handler};
-                _handlers[logSource].Add(handlerCategoryPair);
+                if (handler == null)
+                    throw new ArgumentNullException("handler");
+                if (logSource == null)
+                    throw new ArgumentNullException("logSource");
+
+                if (!_handlers.ContainsKey(logSource))
+                    _handlers.Add(logSource, new List<HandlerCategoryPair>());
+
+                var handlerCategoryPair = _handlers[logSource].Where(i => i.Handler == handler).FirstOrDefault();
+                if (handlerCategoryPair != null)
+                    handlerCategoryPair.Categories |= categories;
+                else
+                {
+                    handlerCategoryPair = new HandlerCategoryPair() {Categories = categories, Handler = handler};
+                    _handlers[logSource].Add(handlerCategoryPair);
+                }
             }
-            
         }
 
         public void UnSubscribe(object logSource, LogEventCategory categories, LogMessageHandler handler)
         {
-            if (handler == null)
-                throw new ArgumentNullException("handler");
-            if (logSource == null)
-                throw new ArgumentNullException("logSource");
-
-            if (!_handlers.ContainsKey(logSource))
-                return;
-
-            var handlerCategoryPair = _handlers[logSource].Where(i => i.Handler == handler).FirstOrDefault();
-            if (handlerCategoryPair == null)
-                return;
-
-            var newCategories = handlerCategoryPair.Categories ^ categories;
-            if (newCategories == 0)
+            lock (_mutex)
             {
-                _handlers[logSource].Remove(handlerCategoryPair);
-                if (_handlers[logSource].Count == 0)
-                    _handlers.Remove(logSource);
-            }
-            else
-            {
-                handlerCategoryPair.Categories = newCategories;
-            }
+                if (handler == null)
+                    throw new ArgumentNullException("handler");
+                if (logSource == null)
+                    throw new ArgumentNullException("logSource");
 
+                if (!_handlers.ContainsKey(logSource))
+                    return;
+
+                var handlerCategoryPair = _handlers[logSource].Where(i => i.Handler == handler).FirstOrDefault();
+                if (handlerCategoryPair == null)
+                    return;
+
+                var newCategories = handlerCategoryPair.Categories ^ categories;
+                if (newCategories == 0)
+                {
+                    _handlers[logSource].Remove(handlerCategoryPair);
+                    if (_handlers[logSource].Count == 0)
+                        _handlers.Remove(logSource);
+                }
+                else
+                {
+                    handlerCategoryPair.Categories = newCategories;
+                }
+            }
         }
     }
 }

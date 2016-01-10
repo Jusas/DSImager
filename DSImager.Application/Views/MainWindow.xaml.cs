@@ -40,5 +40,21 @@ namespace DSImager.Application.Views
             b.ContextMenu.Placement = PlacementMode.Bottom;
             b.ContextMenu.IsOpen = true;
         }
+
+        private void OnLatestLogButtonClicked(object sender, RoutedEventArgs e)
+        {
+            Button b = sender as Button;
+            b.ContextMenu.IsEnabled = true;
+            b.ContextMenu.PlacementTarget = b;
+            b.ContextMenu.Placement = PlacementMode.Top;
+            b.ContextMenu.IsOpen = true;
+        }
+
+        private void OnLogListMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            ScrollViewer scv = (ScrollViewer)sender;
+            scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
+            e.Handled = true;
+        }
     }
 }

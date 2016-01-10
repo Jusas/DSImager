@@ -14,6 +14,10 @@ namespace DSImager.Core.Models
         /// </summary>
         public string Message { get; set; }
 
+        public DateTime Date { get; private set; }
+
+        public string DateString { get { return Date.ToString("HH:mm:ss"); } }
+
         /// <summary>
         /// The message category
         /// </summary>
@@ -29,6 +33,7 @@ namespace DSImager.Core.Models
             EventSource = source;
             Category = category;
             Message = message;
+            Date = DateTime.Now;
         }
     }
 }

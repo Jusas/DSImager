@@ -67,6 +67,7 @@ namespace DSImager.Application
             viewProvider.Register<ConnectDialog, ConnectDialogViewModel>();
             viewProvider.Register<DeviceInfoDialog, DeviceInfoViewModel>();
             viewProvider.Register<HistogramDialog, HistogramDialogViewModel>();
+            viewProvider.Register<SessionDialog, SessionDialogViewModel>();
 
             var deviceProvider = container.GetInstance<IDeviceProvider>();
             deviceProvider.Register<ICameraV2, Camera>();
