@@ -11,11 +11,18 @@ namespace DSImager.Core.Interfaces
 
     public delegate void ImagingCompletedHandler(bool successful, Exposure exposure);
 
+    public enum ImageFormat
+    {
+        Tiff,
+        Fits
+    }
+
     public interface IImagingService
     {
         event ImagingCompletedHandler OnImagingComplete;
 
         bool DarkFrameMode { get; set; }
+        List<ImageFormat> SupportedImageFormats { get; }
         ImageSequence CurrentImageSequence { get; }
         ImagingSession CurrentImagingSession { get; }
         ExposureVisualSettings ExposureVisualProcessingSettings { get; }

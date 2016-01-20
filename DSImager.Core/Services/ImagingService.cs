@@ -15,6 +15,7 @@ namespace DSImager.Core.Services
     /// </summary>
     public class ImagingService : IImagingService
     {
+        public List<ImageFormat> SupportedImageFormats { get; private set; }
 
         // TODO: is this supposed to be here? Images are taken in sessions, when are dark frames taken and shoud that setting be in the ImageSequence itself?
         public bool DarkFrameMode { get; set; }
@@ -39,6 +40,10 @@ namespace DSImager.Core.Services
                 AutoStretch = true,
                 StretchMin = 0,
                 StretchMax = -1
+            };
+            SupportedImageFormats = new List<ImageFormat>()
+            {
+                ImageFormat.Fits, ImageFormat.Tiff
             };
             DarkFrameMode = false; 
         }
@@ -82,8 +87,6 @@ namespace DSImager.Core.Services
             CurrentImagingSession = new ImagingSession(sequences)
             {
                 AreaRect = areaRect.Value,
-                BinX = binX,
-                BinY = binY,
                 Name = "Preview"
             };
 
@@ -93,9 +96,6 @@ namespace DSImager.Core.Services
 
         public async Task<bool> BeginImagingSession(ImagingSession session)
         {
-            // Set binning for the camera accordingly.
-            _cameraService.ConnectedCamera.BinX = (short)session.BinX;
-            _cameraService.ConnectedCamera.BinY = (short)session.BinY;
 
             int rightBound = _cameraService.ConnectedCamera.CameraXSize;
             int bottomBound = _cameraService.ConnectedCamera.CameraYSize;
@@ -104,15 +104,21 @@ namespace DSImager.Core.Services
             if (session.AreaRect.Y + session.AreaRect.Height > bottomBound || session.AreaRect.Y < 0)
                 throw new ArgumentOutOfRangeException("areaRect", "Pixel Y area out of camera pixel bounds");
 
-            _cameraService.ConnectedCamera.StartX = session.AreaRect.X;
-            _cameraService.ConnectedCamera.StartY = session.AreaRect.Y;
-            _cameraService.ConnectedCamera.NumX = session.AreaRect.Width / session.BinX;
-            _cameraService.ConnectedCamera.NumY = session.AreaRect.Height / session.BinY;
-
             _cameraService.OnExposureCompleted += OnExposureCompleted;
 
             // TODO: handling of several ImageSequences: now just runs the first frame of the first sequence.
             var sequence = session.ImageSequences.FirstOrDefault();
+
+            // Set binning for the camera accordingly.
+            _cameraService.ConnectedCamera.BinX = (short)sequence.BinX;
+            _cameraService.ConnectedCamera.BinY = (short)sequence.BinY;
+
+            _cameraService.ConnectedCamera.StartX = session.AreaRect.X;
+            _cameraService.ConnectedCamera.StartY = session.AreaRect.Y;
+            _cameraService.ConnectedCamera.NumX = session.AreaRect.Width / sequence.BinX;
+            _cameraService.ConnectedCamera.NumY = session.AreaRect.Height / sequence.BinY;
+
+
             bool result = false;
             try
             {

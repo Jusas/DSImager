@@ -17,10 +17,11 @@ namespace DSImager.Core.Models
     public class ImagingSession
     {
         public string Name { get; set; }
-        public int BinX { get; set; }
-        public int BinY { get; set; }
         public Rect AreaRect { get; set; }
         public List<ImageSequence> ImageSequences { get; set; }
+        public bool PauseAfterEachSequence { get; set; }
+        public int RepeatTimes { get; set; }
+        public bool PauseAfterEachRepeat { get; set; }
 
         public ImagingSession()
         {
