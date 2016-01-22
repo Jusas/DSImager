@@ -12,5 +12,8 @@ namespace DSImager.Core.System
         public int Y;
         public int Width;
         public int Height;
+
+        public static Rect Full { get { return new Rect() {Height = 0, Width = 0, X = 0, Y = 0}; } }
+
     }
 }

@@ -262,11 +262,13 @@ namespace DSImager.ViewModels
         public override void Initialize()
         {
             OwnerView.OnViewLoaded += OnViewLoaded;
+            OwnerView.OnViewClosed += OnViewClosed;
             // Listen to all events.
             LogService.Subscribe(LogService.GlobalLogSource,
                 LogEventCategory.Error | LogEventCategory.Informational | LogEventCategory.Warning,
                 OnLogMessage);
         }
+
 
         #endregion
 
@@ -402,6 +404,12 @@ namespace DSImager.ViewModels
                 _application.ExitApplication(0);
 
             PostInitialize();
+        }
+
+
+        private void OnViewClosed(object sender, EventArgs e)
+        {
+            _application.ExitApplication(0);
         }
 
         private void OnCameraChosen(string cameraName)

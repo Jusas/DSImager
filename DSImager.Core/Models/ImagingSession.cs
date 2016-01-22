@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,23 +15,53 @@ namespace DSImager.Core.Models
     /// regarding what to do when taking each ImageSequence (changing filter (not implemented yet),
     /// pausing, etc). Serializable class. TODO: filter may be actually wise to set in the ImageSequence.
     /// </summary>
+    [JsonObject]
     public class ImagingSession
     {
         public string Name { get; set; }
         public Rect AreaRect { get; set; }
-        public List<ImageSequence> ImageSequences { get; set; }
+        public ObservableCollection<ImageSequence> ImageSequences { get; set; }
         public bool PauseAfterEachSequence { get; set; }
         public int RepeatTimes { get; set; }
         public bool PauseAfterEachRepeat { get; set; }
 
         public ImagingSession()
         {
-            ImageSequences = new List<ImageSequence>();
+            ImageSequences = new ObservableCollection<ImageSequence>();
+            Init();
         }
 
         public ImagingSession(IEnumerable<ImageSequence> sequences)
         {
-            ImageSequences = new List<ImageSequence>(sequences);
+            ImageSequences = new ObservableCollection<ImageSequence>(sequences);
+            Init();
+        }
+
+        private void Init()
+        {
+            Name = "untitled session";
+            PauseAfterEachSequence = false;
+            RepeatTimes = 1;
+            PauseAfterEachRepeat = false;
+            AreaRect = Rect.Full;
+        }
+
+        public ImagingSession Clone()
+        {
+            var clone = new ImagingSession
+            {
+                Name = Name,
+                AreaRect = AreaRect,
+                PauseAfterEachRepeat = PauseAfterEachRepeat,
+                RepeatTimes = RepeatTimes,
+                PauseAfterEachSequence = PauseAfterEachSequence
+            };
+            clone.ImageSequences = new ObservableCollection<ImageSequence>();
+            foreach (var imageSequence in ImageSequences)
+            {
+                clone.ImageSequences.Add(imageSequence.Clone());
+            }
+            return clone;
         }
 
         public string GenerateFilename(ImageSequence sequence)

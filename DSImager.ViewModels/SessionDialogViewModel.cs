@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DSImager.Core.Interfaces;
+using DSImager.Core.Models;
 
 namespace DSImager.ViewModels
 {
@@ -17,6 +19,9 @@ namespace DSImager.ViewModels
 
         private ICameraService _cameraService;
         private IImagingService _imagingService;
+        private IStorageService _storageService;
+
+        private readonly string SessionFile = "saved-sessions.json";
 
         private List<double> _presetExposureValues;
         public List<double> PresetExposureValues
@@ -51,6 +56,82 @@ namespace DSImager.ViewModels
             }
         }
 
+        private ObservableCollection<ImagingSession> _savedSessions;
+        /// <summary>
+        /// Saved sessions, read from the sessions JSON file.
+        /// </summary>
+        public ObservableCollection<ImagingSession> SavedSessions
+        {
+            get { return _savedSessions; }
+            set
+            {
+                SetNotifyingProperty(() => SavedSessions, ref _savedSessions, value);
+            }
+        }
+
+        private int _selectedSessionIndex = -1;
+        /// <summary>
+        /// The selected session index.
+        /// </summary>
+        public int SelectedSessionIndex
+        {
+            get { return _selectedSessionIndex; }
+            set
+            {
+                SetNotifyingProperty(() => SelectedSessionIndex, ref _selectedSessionIndex, value);
+                SetNotifyingProperty(() => SelectedSession);
+                SelectedSequenceIndex = -1;
+            }
+        }
+
+        private int _selectedSequenceIndex = -1;
+        /// <summary>
+        /// The selected sequence index.
+        /// </summary>
+        public int SelectedSequenceIndex
+        {
+            get { return _selectedSequenceIndex; }
+            set
+            {
+                SetNotifyingProperty(() => SelectedSequenceIndex, ref _selectedSequenceIndex, value);
+                SetNotifyingProperty(() => SelectedSequence);
+            }
+        }
+
+        /// <summary>
+        /// The selected ImagingSession instance, fetched using the selected index.
+        /// </summary>
+        public ImagingSession SelectedSession
+        {
+            get
+            {
+                return (_savedSessions != null && _selectedSessionIndex >= 0 && _selectedSessionIndex < _savedSessions.Count) 
+                    ? _savedSessions[_selectedSessionIndex] : null;
+            }
+            set
+            {
+                int index = _savedSessions.IndexOf(value);
+                SelectedSessionIndex = index;
+            }
+        }
+
+        /// <summary>
+        /// The selected ImageSequence instance, fetched using the selected index.
+        /// </summary>
+        public ImageSequence SelectedSequence
+        {
+            get
+            {
+                return (SelectedSession != null && _selectedSequenceIndex >= 0 && _selectedSequenceIndex < SelectedSession.ImageSequences.Count)
+                    ? SelectedSession.ImageSequences[_selectedSequenceIndex] : null;
+            }
+            set
+            {
+                int index = SelectedSession.ImageSequences.IndexOf(value);
+                SelectedSequenceIndex = index;
+            }
+        }
+
         #endregion
 
 
@@ -59,11 +140,12 @@ namespace DSImager.ViewModels
         //-------------------------------------------------------------------------------------------------------
 
         public SessionDialogViewModel(ILogService logService, ICameraService cameraService,
-            IImagingService imagingService)
+            IImagingService imagingService, IStorageService storageService)
             : base(logService)
         {
             _cameraService = cameraService;
             _imagingService = imagingService;
+            _storageService = storageService;
         }
 
         public override void Initialize()
@@ -76,6 +158,7 @@ namespace DSImager.ViewModels
             PopulateExposures();
             ConstructBinningOptions();
             ConstructFileTypeOptions();
+            LoadSessionsFromDisk();
         }
 
         #endregion
@@ -83,6 +166,24 @@ namespace DSImager.ViewModels
         //-------------------------------------------------------------------------------------------------------
         #region PRIVATE METHODS
         //-------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Load the ImagingSessions from disk.
+        /// </summary>
+        private void LoadSessionsFromDisk()
+        {
+            try
+            {
+                SavedSessions = _storageService.Get<ObservableCollection<ImagingSession>>(SessionFile);
+            }
+            catch (Exception)
+            {
+                SavedSessions = new ObservableCollection<ImagingSession>();
+                LogService.LogMessage(new LogMessage(this, LogEventCategory.Warning, 
+                    "Imaging sessions could not be loaded from disk"));
+            }
+            
+        }
 
         /// <summary>
         /// Populate the list of preset exposure values for the view to provide to the user.
@@ -161,7 +262,8 @@ namespace DSImager.ViewModels
         /// </summary>
         private void CreateNewSessionEntry()
         {
-            
+            SavedSessions.Add(new ImagingSession());
+            SelectedSessionIndex = SavedSessions.Count - 1;
         }
 
         /// <summary>
@@ -169,7 +271,8 @@ namespace DSImager.ViewModels
         /// </summary>
         private void CopySelectedSessionEntry()
         {
-            
+            SavedSessions.Add(SelectedSession.Clone());
+            SelectedSessionIndex = SavedSessions.Count - 1;
         }
 
         /// <summary>
@@ -177,7 +280,8 @@ namespace DSImager.ViewModels
         /// </summary>
         private void DeleteSelectedSessionEntry()
         {
-            
+            SavedSessions.Remove(SelectedSession);
+            SelectedSessionIndex = -1;
         }
 
         /// <summary>
@@ -185,7 +289,8 @@ namespace DSImager.ViewModels
         /// </summary>
         private void CreateNewSequenceEntry()
         {
-
+            SelectedSession.ImageSequences.Add(new ImageSequence());
+            SelectedSequenceIndex = SelectedSession.ImageSequences.Count - 1;
         }
 
         /// <summary>
@@ -193,7 +298,8 @@ namespace DSImager.ViewModels
         /// </summary>
         private void CopySelectedSequenceEntry()
         {
-
+            SelectedSession.ImageSequences.Add(SelectedSequence.Clone());
+            SelectedSequenceIndex = SelectedSession.ImageSequences.Count - 1;
         }
 
         /// <summary>
@@ -201,7 +307,8 @@ namespace DSImager.ViewModels
         /// </summary>
         private void DeleteSelectedSequenceEntry()
         {
-
+            SelectedSession.ImageSequences.Remove(SelectedSequence);
+            SelectedSequenceIndex = -1;
         }
 
         #endregion
@@ -224,7 +331,7 @@ namespace DSImager.ViewModels
 
     public class SessionDialogViewModelDT : SessionDialogViewModel
     {
-        public SessionDialogViewModelDT() : base(null, null, null)
+        public SessionDialogViewModelDT() : base(null, null, null, null)
         {
         }
     }

@@ -13,6 +13,7 @@ namespace DSImager.Core.Models
      * Is also saved to disk as a sequence definition, ie. is serializable
      * and deserializable.
      */
+    [JsonObject]
     public class ImageSequence
     {
         public string Name { get; set; }
@@ -20,6 +21,7 @@ namespace DSImager.Core.Models
         public double ExposureDuration { get; set; }
         public string Extension { get; set; }
         public ImageFormat Format { get; set; }
+        public bool Enabled { get; set; }
 
         public int BinX { get; set; }
         public int BinY { get; set; }
@@ -30,6 +32,7 @@ namespace DSImager.Core.Models
         public ImageSequence()
         {
             Name = "untitled sequence";
+            Enabled = true;
             NumExposures = 1;
             ExposureDuration = 1;
             Extension = "xxx";
@@ -37,6 +40,22 @@ namespace DSImager.Core.Models
             BinX = 1;
             BinY = 1;
             Format = ImageFormat.Fits;
+        }
+
+        public ImageSequence Clone()
+        {
+            return new ImageSequence
+            {
+                Name = Name,
+                NumExposures = NumExposures,
+                BinX = BinX,
+                BinY = BinY,
+                CurrentExposure = CurrentExposure,
+                Enabled = Enabled,
+                ExposureDuration = ExposureDuration,
+                Extension = Extension,
+                Format = Format
+            };
         }
 
     }
