@@ -109,7 +109,7 @@ namespace DSImager.Core.Services
         /// Did exposuring succeed or fail. Note: upon stopping exposure, 
         /// the return value is true (exposure data is still saved). Upon aborting, the value is false.
         /// </returns>
-        public async Task<bool> StartExposure(double duration, bool isDarkFrame = false)
+        public async Task<bool> TakeExposure(double duration, bool isDarkFrame = false)
         {
             _isExposuring = true;
 

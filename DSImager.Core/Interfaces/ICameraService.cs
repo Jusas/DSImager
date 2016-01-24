@@ -32,7 +32,7 @@ namespace DSImager.Core.Interfaces
 
         string ChooseDevice();
         bool Initialize(string deviceId);
-        Task<bool> StartExposure(double duration, bool isDarkFrame = false);
+        Task<bool> TakeExposure(double duration, bool isDarkFrame = false);
         void StopExposure();
         void AbortExposure();
         void StopOrAbortExposure();

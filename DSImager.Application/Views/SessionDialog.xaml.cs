@@ -25,5 +25,10 @@ namespace DSImager.Application.Views
             InitializeComponent();
             ViewModel = viewModel;
         }
+
+        private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+
+        }
     }
 }

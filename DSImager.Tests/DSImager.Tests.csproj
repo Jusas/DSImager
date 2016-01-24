@@ -58,6 +58,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Bootstrapper.cs" />
+    <Compile Include="Services\ImagingServiceTests.cs" />
     <Compile Include="Services\StorageServiceTests.cs" />
     <Compile Include="Services\CameraServiceTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -6,7 +6,7 @@ using NUnit;
 using NUnit.Framework;
 using SimpleInjector;
 
-namespace DSImager.Tests
+namespace DSImager.Tests.Services
 {
     [TestFixture]
     public class CameraServiceTests
@@ -27,6 +27,7 @@ namespace DSImager.Tests
         [Test]
         public async Task TakeSuccessfulExposure()
         {
+            Console.WriteLine("Running TakeSuccessfulExposure");
             _cameraService.OnExposureProgressChanged += delegate(double duration, double exposureDuration, ExposurePhase phase)
             {
                 Console.WriteLine(duration);
@@ -38,7 +39,7 @@ namespace DSImager.Tests
                 Console.WriteLine("Width: " + exposure.Width + ", Height: " + exposure.Height);
             };
 
-            var exposureOk = await _cameraService.StartExposure(2.0, false);
+            var exposureOk = await _cameraService.TakeExposure(2.0, false);
             Assert.True(exposureOk);
 
         }
@@ -58,7 +59,7 @@ namespace DSImager.Tests
                 Console.WriteLine("Exposure time: " + exposure.MetaData.ExposureTime);
             };
 
-            var exposureTask = _cameraService.StartExposure(5.0, false);
+            var exposureTask = _cameraService.TakeExposure(5.0, false);
             await Task.Delay(1000);
             _cameraService.StopExposure();
 

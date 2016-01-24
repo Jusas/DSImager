@@ -10,6 +10,9 @@ namespace DSImager.Core.Interfaces
 {
 
     public delegate void ImagingCompletedHandler(bool successful, Exposure exposure);
+    public delegate void ImagingSessionStartedHandler(ImagingSession session);
+    public delegate void ImagingSessionCompletedHandler(ImagingSession session, bool completedSuccessfully, bool canceledByUser);
+    public delegate void ImagingSessionPausedHandler(ImagingSession session);
 
     public enum ImageFormat
     {
@@ -20,14 +23,22 @@ namespace DSImager.Core.Interfaces
     public interface IImagingService
     {
         event ImagingCompletedHandler OnImagingComplete;
+        event ImagingSessionStartedHandler OnImagingSessionStarted;
+        event ImagingSessionPausedHandler OnImagingSessionPaused;
+        event ImagingSessionPausedHandler OnImagingSessionResumed;
+        event ImagingSessionCompletedHandler OnImagingSessionCompleted;
 
         bool DarkFrameMode { get; set; }
+        bool IsSessionPaused { get; }
         List<ImageFormat> SupportedImageFormats { get; }
         ImageSequence CurrentImageSequence { get; }
         ImagingSession CurrentImagingSession { get; }
         ExposureVisualSettings ExposureVisualProcessingSettings { get; }
-        Task<bool> TakeSingleExposure(double duration, int binX, int binY, Rect? areaRect);
-        Task<bool> BeginImagingSession(ImagingSession session);
+        Task TakeSingleExposure(double duration, int binXY, Rect? areaRect);
+        Task RunImagingSession(ImagingSession session);
+        void PauseCurrentImagingOperation();
+        Task ResumeStoredImagingOperation();
+        void CancelStoredImagingOperation();
         void CancelCurrentImagingOperation();
     }
 }

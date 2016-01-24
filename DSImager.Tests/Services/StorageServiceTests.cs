@@ -7,7 +7,7 @@ using NUnit;
 using NUnit.Framework;
 using SimpleInjector;
 
-namespace DSImager.Tests
+namespace DSImager.Tests.Services
 {
     [TestFixture]
     public class StorageServiceTests

@@ -29,7 +29,7 @@ namespace DSImager.Core.Services
         public StorageService(ILogService logService)
         {
             _logService = logService;
-            _rootPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DSImager");
+            _rootPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DSImager");
         }
 
         public void SetStorageRoot(string path)
@@ -73,7 +73,7 @@ namespace DSImager.Core.Services
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(fname));
                 }
-                var json = JsonConvert.SerializeObject(data);
+                var json = JsonConvert.SerializeObject(data, Formatting.Indented);
                 File.WriteAllText(fname, json);
             }
             catch (IOException e)

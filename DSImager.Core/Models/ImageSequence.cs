@@ -23,11 +23,10 @@ namespace DSImager.Core.Models
         public ImageFormat Format { get; set; }
         public bool Enabled { get; set; }
 
-        public int BinX { get; set; }
-        public int BinY { get; set; }
+        public int BinXY { get; set; }
 
         [JsonIgnore]
-        public int CurrentExposure { get; set; }
+        public int CurrentExposureIndex { get; set; }
 
         public ImageSequence()
         {
@@ -36,9 +35,8 @@ namespace DSImager.Core.Models
             NumExposures = 1;
             ExposureDuration = 1;
             Extension = "xxx";
-            CurrentExposure = 0;
-            BinX = 1;
-            BinY = 1;
+            CurrentExposureIndex = 0;
+            BinXY = 1;
             Format = ImageFormat.Fits;
         }
 
@@ -48,9 +46,8 @@ namespace DSImager.Core.Models
             {
                 Name = Name,
                 NumExposures = NumExposures,
-                BinX = BinX,
-                BinY = BinY,
-                CurrentExposure = CurrentExposure,
+                BinXY = BinXY,
+                CurrentExposureIndex = 0,
                 Enabled = Enabled,
                 ExposureDuration = ExposureDuration,
                 Extension = Extension,

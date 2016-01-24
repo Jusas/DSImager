@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,11 +44,11 @@ namespace DSImager.ViewModels
             }
         }
 
-        private List<KeyValuePair<int, string>> _binningModeOptions;
+        private List<int> _binningModeOptions;
         /// <summary>
         /// Different binning modes available for the connected camera.
         /// </summary>
-        public List<KeyValuePair<int, string>> BinningModeOptions
+        public List<int> BinningModeOptions
         {
             get { return _binningModeOptions; }
             set
@@ -151,6 +152,12 @@ namespace DSImager.ViewModels
         public override void Initialize()
         {
             OwnerView.OnViewLoaded += OnViewLoaded;            
+            OwnerView.OnViewClosing += OnViewClosing;
+        }
+
+        private void OnViewClosing(object sender, CancelEventArgs cancelEventArgs)
+        {
+            _storageService.Set(SessionFile, SavedSessions);
         }
 
         private void OnViewLoaded(object sender, EventArgs eventArgs)
@@ -230,10 +237,10 @@ namespace DSImager.ViewModels
             // For now assume we have equal X and Y binning. Otherwise assume no support.
             var maxBinning = cam.MaxBinX == cam.MaxBinY ? cam.MaxBinX : 1;
 
-            List<KeyValuePair<int, string>> opts = new List<KeyValuePair<int, string>>();
+            List<int> opts = new List<int>();
             for (int i = 0; i < maxBinning; i++)
             {
-                opts.Add(new KeyValuePair<int, string>(i + 1, string.Format("{0}x{0}", i + 1)));
+                opts.Add(i + 1);
             }
 
             BinningModeOptions = opts;
@@ -311,6 +318,22 @@ namespace DSImager.ViewModels
             SelectedSequenceIndex = -1;
         }
 
+        /// <summary>
+        /// Closes the dialog.
+        /// </summary>
+        private void CloseDialog()
+        {
+            OwnerView.Close();
+        }
+
+        /// <summary>
+        /// Starts the selected imaging session.
+        /// </summary>
+        private void StartImaging()
+        {
+            CloseDialog();
+        }
+
         #endregion
 
 
@@ -318,12 +341,17 @@ namespace DSImager.ViewModels
         #region COMMANDS
         //-------------------------------------------------------------------------------------------------------
 
+
+        public ICommand CloseCommand { get { return new CommandHandler(CloseDialog); } }
+        public ICommand StartCommand { get { return new CommandHandler(StartImaging); } }
+
         public ICommand CreateNewSessionEntryCommand { get { return new CommandHandler(CreateNewSessionEntry); } }
         public ICommand CopySelectedSessionEntryCommand { get { return new CommandHandler(CopySelectedSessionEntry); } }
         public ICommand DeleteSelectedSessionEntryCommand { get { return new CommandHandler(DeleteSelectedSessionEntry); } }
         public ICommand CreateNewSequenceEntryCommand { get { return new CommandHandler(CreateNewSequenceEntry); } }
         public ICommand CopySelectedSequenceEntryCommand { get { return new CommandHandler(CopySelectedSequenceEntry); } }
         public ICommand DeleteSelectedSequenceEntryCommand { get { return new CommandHandler(DeleteSelectedSequenceEntry); } }
+
 
         #endregion
 

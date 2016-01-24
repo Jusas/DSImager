@@ -24,6 +24,11 @@ namespace DSImager.Core.Models
         public bool PauseAfterEachSequence { get; set; }
         public int RepeatTimes { get; set; }
         public bool PauseAfterEachRepeat { get; set; }
+        
+        [JsonIgnore]
+        public int CurrentRepeatIndex { get; set; }
+        [JsonIgnore]
+        public int CurrentImageSequenceIndex { get; set; }
 
         public ImagingSession()
         {
@@ -43,6 +48,8 @@ namespace DSImager.Core.Models
             PauseAfterEachSequence = false;
             RepeatTimes = 1;
             PauseAfterEachRepeat = false;
+            CurrentRepeatIndex = 0;
+            CurrentImageSequenceIndex = 0;
             AreaRect = Rect.Full;
         }
 
@@ -54,7 +61,9 @@ namespace DSImager.Core.Models
                 AreaRect = AreaRect,
                 PauseAfterEachRepeat = PauseAfterEachRepeat,
                 RepeatTimes = RepeatTimes,
-                PauseAfterEachSequence = PauseAfterEachSequence
+                PauseAfterEachSequence = PauseAfterEachSequence,
+                CurrentRepeatIndex = 0,
+                CurrentImageSequenceIndex = 0
             };
             clone.ImageSequences = new ObservableCollection<ImageSequence>();
             foreach (var imageSequence in ImageSequences)
@@ -67,7 +76,7 @@ namespace DSImager.Core.Models
         public string GenerateFilename(ImageSequence sequence)
         {
             // "Pleiades-16-01-01-192003_lum"
-            return string.Format("{0}-{1}_{2}", Name, DateTime.Now.ToString("yy-MM-dd-HHmmss"),
+            return string.Format("{0}-{1}_{2}", Name, DateTime.Now.ToString("yy-MM-dd-HHmmssffff"),
                 sequence.Extension);
         }
     }

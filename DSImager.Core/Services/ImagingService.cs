@@ -19,11 +19,19 @@ namespace DSImager.Core.Services
 
         // TODO: is this supposed to be here? Images are taken in sessions, when are dark frames taken and shoud that setting be in the ImageSequence itself?
         public bool DarkFrameMode { get; set; }
+        public bool IsSessionPaused { get; private set; }
 
         public event ImagingCompletedHandler OnImagingComplete;
+        public event ImagingSessionStartedHandler OnImagingSessionStarted;
+        public event ImagingSessionPausedHandler OnImagingSessionPaused;
+        public event ImagingSessionPausedHandler OnImagingSessionResumed;
+        public event ImagingSessionCompletedHandler OnImagingSessionCompleted;
+
 
         private ICameraService _cameraService;
         private ILogService _logService;
+
+        private ImagingSession _storedSession;
 
         public ImageSequence CurrentImageSequence { get; set; }
 
@@ -45,7 +53,8 @@ namespace DSImager.Core.Services
             {
                 ImageFormat.Fits, ImageFormat.Tiff
             };
-            DarkFrameMode = false; 
+            DarkFrameMode = false;
+            IsSessionPaused = false;
         }
 
         /*
@@ -71,11 +80,12 @@ namespace DSImager.Core.Services
          * - 
          * */
 
-        public async Task<bool> TakeSingleExposure(double duration, int binX, int binY, Rect? areaRect)
+        public async Task TakeSingleExposure(double duration, int binXY, Rect? areaRect)
         {
-            CurrentImageSequence = new ImageSequence();
-            CurrentImageSequence.ExposureDuration = duration;
-            var sequences = new[] {CurrentImageSequence};
+            var previewSequence = new ImageSequence();
+            previewSequence.ExposureDuration = duration;
+            previewSequence.BinXY = binXY;
+            var sequences = new[] { previewSequence };
             if(areaRect == null)
                 areaRect = new Rect {
                     Width = _cameraService.ConnectedCamera.CameraXSize,
@@ -84,17 +94,17 @@ namespace DSImager.Core.Services
                     Y = 0
                 };
 
-            CurrentImagingSession = new ImagingSession(sequences)
+            var previewSession = new ImagingSession(sequences)
             {
                 AreaRect = areaRect.Value,
                 Name = "Preview"
             };
 
-            return await BeginImagingSession(CurrentImagingSession);
+            await RunImagingSession(previewSession);
         }
         
 
-        public async Task<bool> BeginImagingSession(ImagingSession session)
+        public async Task RunImagingSession(ImagingSession session)
         {
 
             int rightBound = _cameraService.ConnectedCamera.CameraXSize;
@@ -105,35 +115,85 @@ namespace DSImager.Core.Services
                 throw new ArgumentOutOfRangeException("areaRect", "Pixel Y area out of camera pixel bounds");
 
             _cameraService.OnExposureCompleted += OnExposureCompleted;
+            CurrentImagingSession = session;
 
-            // TODO: handling of several ImageSequences: now just runs the first frame of the first sequence.
-            var sequence = session.ImageSequences.FirstOrDefault();
-
-            // Set binning for the camera accordingly.
-            _cameraService.ConnectedCamera.BinX = (short)sequence.BinX;
-            _cameraService.ConnectedCamera.BinY = (short)sequence.BinY;
-
-            _cameraService.ConnectedCamera.StartX = session.AreaRect.X;
-            _cameraService.ConnectedCamera.StartY = session.AreaRect.Y;
-            _cameraService.ConnectedCamera.NumX = session.AreaRect.Width / sequence.BinX;
-            _cameraService.ConnectedCamera.NumY = session.AreaRect.Height / sequence.BinY;
+            if (OnImagingSessionStarted != null)
+                OnImagingSessionStarted(session);
 
 
-            bool result = false;
-            try
+            for (int r = session.CurrentRepeatIndex; r < session.RepeatTimes; r++)
             {
-                result = await _cameraService.StartExposure(sequence.ExposureDuration, DarkFrameMode);
-                _cameraService.OnExposureCompleted -= OnExposureCompleted;
+                for (int i = session.CurrentImageSequenceIndex; i < session.ImageSequences.Count; i++)
+                {
+                    var sequence = session.ImageSequences[i];
+                    CurrentImageSequence = sequence;
+
+                    // Set binning for the camera accordingly.
+                    _cameraService.ConnectedCamera.BinX = (short)sequence.BinXY;
+                    _cameraService.ConnectedCamera.BinY = (short)sequence.BinXY;
+
+                    // If Width or Height is 0, assume full area.
+                    var rect = session.AreaRect;
+                    if (rect.Width == 0 || rect.Height == 0)
+                    {
+                        rect.Width = _cameraService.ConnectedCamera.CameraXSize;
+                        rect.Height = _cameraService.ConnectedCamera.CameraYSize;
+                    }
+
+                    _cameraService.ConnectedCamera.StartX = rect.X;
+                    _cameraService.ConnectedCamera.StartY = rect.Y;
+                    _cameraService.ConnectedCamera.NumX = rect.Width / sequence.BinXY;
+                    _cameraService.ConnectedCamera.NumY = rect.Height / sequence.BinXY;
+
+                    for (int j = sequence.CurrentExposureIndex; j < sequence.NumExposures; j++)
+                    {
+                        bool result = false;
+                        try
+                        {
+                            result = await _cameraService.TakeExposure(sequence.ExposureDuration, DarkFrameMode);
+                            if (!result)
+                            {
+                                _logService.LogMessage(new LogMessage(this, LogEventCategory.Error, 
+                                    "TakeExposure returned false; last exposure could not be taken/saved."));                                
+                            }
+
+                            // todo: save the exposure
+                            // Note: we do not increment j because most likely the exposure was incomplete.
+                            if (IsSessionPaused)
+                                break;
+                        }
+                        catch (Exception e)
+                        {
+                            _logService.LogMessage(new LogMessage(this, LogEventCategory.Error, 
+                                "Exception occured on RunImagingSession: " + e.Message));
+                            _cameraService.OnExposureCompleted -= OnExposureCompleted;
+                            // Pause, do not abort. Something happened that might be fixable.
+                            PauseCurrentImagingOperation();
+                            break;
+                        }
+                    }
+
+                    if (IsSessionPaused)
+                        break;
+
+
+                }
+
+                if (IsSessionPaused)
+                    break;
+
+                session.CurrentRepeatIndex++;
             }
-            catch (Exception e)
+
+            _cameraService.OnExposureCompleted -= OnExposureCompleted;
+
+            if (!IsSessionPaused)
             {
-                _logService.LogMessage(new LogMessage(this, LogEventCategory.Error, "Exception occured on BeginImagingSession: " + e.Message));
-                _cameraService.OnExposureCompleted -= OnExposureCompleted;
-                throw;
+                // Hmm, what about preview shots, if we stop preview, shouldn't we set canceledByUser=true?
+                if (OnImagingSessionCompleted != null)
+                    OnImagingSessionCompleted(session, true, false);
             }
-
-            return result;
-
+                
             
         }
 
@@ -143,6 +203,54 @@ namespace DSImager.Core.Services
             if (_cameraService.IsExposuring)
             {
                 _cameraService.StopOrAbortExposure();
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void PauseCurrentImagingOperation()
+        {
+            if (IsSessionPaused)
+                return;
+
+            // Store the session and set paused true.
+            _storedSession = CurrentImagingSession;
+            IsSessionPaused = true;
+
+            // Stop any exposure in progress.
+            if (_cameraService.IsExposuring)
+            {
+                _cameraService.StopOrAbortExposure();
+            }
+
+            if (OnImagingSessionPaused != null)
+                OnImagingSessionPaused(_storedSession);
+        }
+
+        public async Task ResumeStoredImagingOperation()
+        {
+            if (IsSessionPaused)
+            {
+                IsSessionPaused = false;
+                if (OnImagingSessionResumed != null)
+                    OnImagingSessionResumed(_storedSession);
+                await RunImagingSession(_storedSession);
+            }
+        }
+
+        public void CancelStoredImagingOperation()
+        {
+            if (IsSessionPaused)
+            {
+                var session = _storedSession;
+                _storedSession = null;
+                IsSessionPaused = false;
+                // Just in case
+                CancelCurrentImagingOperation();
+
+                if (OnImagingSessionCompleted != null)
+                    OnImagingSessionCompleted(session, false, true);
             }
         }
 

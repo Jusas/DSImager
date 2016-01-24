@@ -382,7 +382,7 @@ namespace DSImager.ViewModels
             {
                 IsExposuring = true;
                 UiState = MainViewState.Previewing; // todo: map out the normal cycle of states. Do this before implementing stop/abort etc.
-                _imagingService.TakeSingleExposure(SelectedPreviewExposure, SelectedBinningMode.Key, SelectedBinningMode.Key,
+                _imagingService.TakeSingleExposure(SelectedPreviewExposure, SelectedBinningMode.Key,
                     null);    
             }
             
@@ -431,7 +431,7 @@ namespace DSImager.ViewModels
         {
             // Update the progress bar text and value.
             CurrentExposureProgress = (int)(currentExposureDuration / targetExposureDuration * 100.0);
-            var exposureNum = _imagingService.CurrentImageSequence.CurrentExposure + 1;
+            var exposureNum = _imagingService.CurrentImageSequence.CurrentExposureIndex + 1;
             var totalExposures = _imagingService.CurrentImageSequence.NumExposures;
             double remainingExposureTime = (totalExposures - exposureNum + 1) *
                                            _imagingService.CurrentImageSequence.ExposureDuration - currentExposureDuration;
