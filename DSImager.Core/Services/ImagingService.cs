@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DSImager.Core.Interfaces;
 using DSImager.Core.System;
 using DSImager.Core.Models;
+using nom.tam.fits;
+using nom.tam.util;
 
 namespace DSImager.Core.Services
 {
@@ -30,6 +33,7 @@ namespace DSImager.Core.Services
 
         private ICameraService _cameraService;
         private ILogService _logService;
+        private IImageIoService _imageIoService;
 
         private ImagingSession _storedSession;
 
@@ -39,10 +43,12 @@ namespace DSImager.Core.Services
 
         public ExposureVisualSettings ExposureVisualProcessingSettings { get; set; }
 
-        public ImagingService(ICameraService cameraService, ILogService logService)
+        public ImagingService(ICameraService cameraService, ILogService logService,
+            IImageIoService ioService)
         {
             _cameraService = cameraService;
             _logService = logService;
+            _imageIoService = ioService;
             ExposureVisualProcessingSettings = new ExposureVisualSettings()
             {
                 AutoStretch = true,
@@ -121,12 +127,15 @@ namespace DSImager.Core.Services
                 OnImagingSessionStarted(session);
 
 
-            for (int r = session.CurrentRepeatIndex; r < session.RepeatTimes; r++)
+            for (; session.CurrentRepeatIndex < session.RepeatTimes; session.CurrentRepeatIndex++)
             {
-                for (int i = session.CurrentImageSequenceIndex; i < session.ImageSequences.Count; i++)
+                for (; session.CurrentImageSequenceIndex < session.ImageSequences.Count; session.CurrentImageSequenceIndex++)
                 {
-                    var sequence = session.ImageSequences[i];
+                    var sequence = session.ImageSequences[session.CurrentImageSequenceIndex];
                     CurrentImageSequence = sequence;
+
+                    if(!sequence.Enabled)
+                        continue;
 
                     // Set binning for the camera accordingly.
                     _cameraService.ConnectedCamera.BinX = (short)sequence.BinXY;
@@ -145,7 +154,7 @@ namespace DSImager.Core.Services
                     _cameraService.ConnectedCamera.NumX = rect.Width / sequence.BinXY;
                     _cameraService.ConnectedCamera.NumY = rect.Height / sequence.BinXY;
 
-                    for (int j = sequence.CurrentExposureIndex; j < sequence.NumExposures; j++)
+                    for (; sequence.CurrentExposureIndex < sequence.NumExposures; sequence.CurrentExposureIndex++)
                     {
                         bool result = false;
                         try
@@ -157,8 +166,8 @@ namespace DSImager.Core.Services
                                     "TakeExposure returned false; last exposure could not be taken/saved."));                                
                             }
 
-                            // todo: save the exposure
-                            // Note: we do not increment j because most likely the exposure was incomplete.
+                            // Note: saving happens in OnExposureCompleted and only when the session has SaveOutput set to true.
+                            // Note: we do not increment CurrentExposureIndex because most likely the exposure was incomplete.
                             if (IsSessionPaused)
                                 break;
                         }
@@ -173,16 +182,37 @@ namespace DSImager.Core.Services
                         }
                     }
 
+                    if (session.PauseAfterEachSequence &&
+                        sequence.CurrentExposureIndex == sequence.NumExposures &&
+                        session.CurrentImageSequenceIndex < session.ImageSequences.Count - 1)
+                    {
+                        PauseCurrentImagingOperation();
+                        session.CurrentImageSequenceIndex++;
+                        break;
+                    }
+
                     if (IsSessionPaused)
                         break;
+                }
 
 
+                if (session.PauseAfterEachRepeat &&
+                    session.CurrentImageSequenceIndex == session.ImageSequences.Count &&
+                    session.CurrentRepeatIndex < session.RepeatTimes - 1)
+                {
+                    PauseCurrentImagingOperation();
+                    session.CurrentRepeatIndex++;
+                    break;
                 }
 
                 if (IsSessionPaused)
                     break;
 
-                session.CurrentRepeatIndex++;
+                // Repeat completed, reset the current indices for the next round.
+                session.CurrentImageSequenceIndex = 0;
+                foreach (var imageSequence in session.ImageSequences)
+                    imageSequence.CurrentExposureIndex = 0;
+                
             }
 
             _cameraService.OnExposureCompleted -= OnExposureCompleted;
@@ -254,6 +284,24 @@ namespace DSImager.Core.Services
             }
         }
 
+        private void SaveExposureToDisk(Exposure exposure, string format)
+        {
+
+            var ff = _imageIoService.WritableFileFormats.Where(wff => wff.Id == format).FirstOrDefault();
+            if(ff == null)
+                throw new ArgumentException("File format '" + format + "' was invalid, no writer for that file format found.", "format");
+
+            var writer = _imageIoService.GetImageWriter(ff);
+
+            // TODO path from configuration service
+            var fname = CurrentImagingSession.GenerateFilename(CurrentImageSequence);
+            var path = Path.Combine(Environment.GetFolderPath(
+                    Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create), "DSImager");
+                var filename = Path.Combine(path, fname);
+            writer.Save(exposure, filename);
+
+        }
+
         private void OnExposureCompleted(bool successful, Exposure exposure)
         {
             if (!ExposureVisualProcessingSettings.AutoStretch)
@@ -273,6 +321,9 @@ namespace DSImager.Core.Services
             {
                 exposure.SetStretch();
             }
+
+            if (CurrentImagingSession.SaveOutput)
+                SaveExposureToDisk(exposure, CurrentImageSequence.FileFormat);
             
             if (OnImagingComplete != null)
                 OnImagingComplete(successful, exposure);

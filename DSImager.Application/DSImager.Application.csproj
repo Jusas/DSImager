@@ -43,8 +43,9 @@
   <ItemGroup>
     <Reference Include="ASCOM.DeviceInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=565de7938946fba7, processorArchitecture=MSIL" />
     <Reference Include="ASCOM.DriverAccess, Version=6.0.0.0, Culture=neutral, PublicKeyToken=565de7938946fba7, processorArchitecture=MSIL" />
-    <Reference Include="FontAwesome.WPF">
+    <Reference Include="FontAwesome.WPF, Version=4.4.0.35868, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\FontAwesome.WPF.4.4.0.6\lib\FontAwesome.WPF.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MahApps.Metro">
       <HintPath>..\packages\MahApps.Metro.1.1.2.0\lib\net45\MahApps.Metro.dll</HintPath>
@@ -81,6 +82,7 @@
     <Compile Include="Converters\ComposingConverter.cs" />
     <Compile Include="Converters\BoolMultiConverter.cs" />
     <Compile Include="Converters\ExposureToImageConverter.cs" />
+    <Compile Include="Converters\ImageFileFormatStringConverter.cs" />
     <Compile Include="Converters\InvertBooleanConverter.cs" />
     <Compile Include="Converters\ListItemFromIndexConverter.cs" />
     <Compile Include="Converters\ListLengthMinusOneConverter.cs" />

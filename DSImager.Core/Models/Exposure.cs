@@ -23,6 +23,8 @@ namespace DSImager.Core.Models
 
         private int _pixelMinValue = int.MaxValue;
         private int _pixelMaxValue = int.MinValue;
+        public int PixelMaxValue { get { return _pixelMaxValue; } }
+        public int PixelMinValue { get { return _pixelMinValue; } }
 
         private int _stretchMin = 0;
         public int StretchMin { get { return _stretchMin; } }

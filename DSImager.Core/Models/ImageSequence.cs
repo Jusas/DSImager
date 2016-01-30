@@ -20,7 +20,7 @@ namespace DSImager.Core.Models
         public int NumExposures { get; set; }
         public double ExposureDuration { get; set; }
         public string Extension { get; set; }
-        public ImageFormat Format { get; set; }
+        public string FileFormat { get; set; }
         public bool Enabled { get; set; }
 
         public int BinXY { get; set; }
@@ -37,7 +37,7 @@ namespace DSImager.Core.Models
             Extension = "xxx";
             CurrentExposureIndex = 0;
             BinXY = 1;
-            Format = ImageFormat.Fits;
+            FileFormat = "";
         }
 
         public ImageSequence Clone()
@@ -51,7 +51,7 @@ namespace DSImager.Core.Models
                 Enabled = Enabled,
                 ExposureDuration = ExposureDuration,
                 Extension = Extension,
-                Format = Format
+                FileFormat = FileFormat
             };
         }
 

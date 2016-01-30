@@ -19,6 +19,7 @@
         <converters:StringDoubleConverter x:Key="StringDoubleConverter"></converters:StringDoubleConverter>
         <converters:InvertBooleanConverter x:Key="InvertBooleanConverter"></converters:InvertBooleanConverter>
         <converters:BoolMultiConverter x:Key="BoolMultiConverter"></converters:BoolMultiConverter>
+        <converters:ImageFileFormatStringConverter x:Key="ImageFileFormatStringConverter"></converters:ImageFileFormatStringConverter>
         <Style x:Key="DisabledListItemStyle" TargetType="{x:Type TextBlock}">
             <Style.Triggers>
                 <MultiDataTrigger>
@@ -272,9 +273,22 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <ComboBox Grid.Column="2" Grid.Row="1" VerticalAlignment="Top" Margin="0,108,0,0" Height="26" ItemsSource="{Binding FileTypeOptions}"
-                          Text="{Binding SelectedSequence.Format}"
-                          IsEnabled="{Binding SelectedSequence, Converter={StaticResource NotNullConverter}}"></ComboBox>
+                <ComboBox Grid.Column="2" Grid.Row="1" VerticalAlignment="Top" Margin="0,108,0,0" Height="26" ItemsSource="{Binding FileTypeOptionIds}"
+                          SelectedItem="{Binding SelectedSequence.FileFormat}"
+                          IsEnabled="{Binding SelectedSequence, Converter={StaticResource NotNullConverter}}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource ImageFileFormatStringConverter}">
+                                        <Binding />
+                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Window}" Path="DataContext.FileTypeOptionNames"></Binding>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
                 <Label Content="Frame Count" Grid.Column="3" HorizontalAlignment="Right" Margin="0,36,10,0" Grid.Row="1" VerticalAlignment="Top" Height="26"/>
                 <Label Content="Extension" Grid.Column="3" HorizontalAlignment="Right" Margin="0,72,10,0" Grid.Row="1" VerticalAlignment="Top" Height="26"/>
                 <Label Content="Enabled" Grid.Column="3" HorizontalAlignment="Right" Margin="0,108,10,0" Grid.Row="1" VerticalAlignment="Top" Height="26"/>

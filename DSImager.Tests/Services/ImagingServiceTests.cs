@@ -15,6 +15,7 @@ namespace DSImager.Tests.Services
     {
         private IImagingService _imagingService;
         private ICameraService _cameraService;
+        private IImageIoService _imageIoService;
         private Container _container;
 
         [OneTimeSetUp]
@@ -23,6 +24,7 @@ namespace DSImager.Tests.Services
             _container = Bootstrapper.Container;
             _imagingService = _container.GetInstance<IImagingService>();
             _cameraService = _container.GetInstance<ICameraService>();
+            _imageIoService = _container.GetInstance<IImageIoService>();
             var initialized = _cameraService.Initialize("ASCOM.Simulator.Camera");            
             Assert.True(initialized);
         }
@@ -34,15 +36,16 @@ namespace DSImager.Tests.Services
             {
                 Name = "Test Session"
             };
+            session.SaveOutput = true;
 
             var sequence = new ImageSequence()
             {
-                BinXY = 1,
-                ExposureDuration = 1.0,
+                BinXY = 4,
+                ExposureDuration = 90,
                 Extension = "test",
-                Format = ImageFormat.Tiff,
+                FileFormat = _imageIoService.WritableFileFormats.FirstOrDefault().Id,
                 Name = "Sequence 1",
-                NumExposures = 3
+                NumExposures = 1
             };
 
             session.ImageSequences.Add(sequence);

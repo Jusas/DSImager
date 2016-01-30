@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DSImager.Core.System;
 using Newtonsoft.Json;
@@ -29,6 +30,8 @@ namespace DSImager.Core.Models
         public int CurrentRepeatIndex { get; set; }
         [JsonIgnore]
         public int CurrentImageSequenceIndex { get; set; }
+        [JsonIgnore] 
+        public bool SaveOutput = false;
 
         public ImagingSession()
         {
@@ -51,6 +54,7 @@ namespace DSImager.Core.Models
             CurrentRepeatIndex = 0;
             CurrentImageSequenceIndex = 0;
             AreaRect = Rect.Full;
+
         }
 
         public ImagingSession Clone()
@@ -76,7 +80,10 @@ namespace DSImager.Core.Models
         public string GenerateFilename(ImageSequence sequence)
         {
             // "Pleiades-16-01-01-192003_lum"
-            return string.Format("{0}-{1}_{2}", Name, DateTime.Now.ToString("yy-MM-dd-HHmmssffff"),
+
+            Regex r = new Regex("[^a-zA-Z0-9-]");
+            var name = r.Replace(Name, "-");
+            return string.Format("{0}-{1}_{2}", name, DateTime.Now.ToString("yy-MM-dd-HHmmssffff"),
                 sequence.Extension);
         }
     }

@@ -21,6 +21,7 @@ namespace DSImager.ViewModels
         private ICameraService _cameraService;
         private IImagingService _imagingService;
         private IStorageService _storageService;
+        private IImageIoService _imageIoService;
 
         private readonly string SessionFile = "saved-sessions.json";
 
@@ -34,16 +35,26 @@ namespace DSImager.ViewModels
             }
         }
 
-        private List<ImageFormat> _fileTypeOptions;
-        public List<ImageFormat> FileTypeOptions
+        private List<string> _fileTypeOptionIds;
+        public List<string> FileTypeOptionIds
         {
-            get { return _fileTypeOptions; }
+            get { return _fileTypeOptionIds; }
             set
             {
-                SetNotifyingProperty(() => FileTypeOptions, ref _fileTypeOptions, value);
+                SetNotifyingProperty(() => FileTypeOptionIds, ref _fileTypeOptionIds, value);
             }
         }
 
+        private Dictionary<string, string> _fileTypeOptionNames;
+        public Dictionary<string, string> FileTypeOptionNames
+        {
+            get { return _fileTypeOptionNames; }
+            set
+            {
+                SetNotifyingProperty(() => FileTypeOptionNames, ref _fileTypeOptionNames, value);
+            }
+        }
+        
         private List<int> _binningModeOptions;
         /// <summary>
         /// Different binning modes available for the connected camera.
@@ -141,12 +152,13 @@ namespace DSImager.ViewModels
         //-------------------------------------------------------------------------------------------------------
 
         public SessionDialogViewModel(ILogService logService, ICameraService cameraService,
-            IImagingService imagingService, IStorageService storageService)
+            IImagingService imagingService, IStorageService storageService, IImageIoService imageIoService)
             : base(logService)
         {
             _cameraService = cameraService;
             _imagingService = imagingService;
             _storageService = storageService;
+            _imageIoService = imageIoService;
         }
 
         public override void Initialize()
@@ -225,7 +237,10 @@ namespace DSImager.ViewModels
         /// </summary>
         private void ConstructFileTypeOptions()
         {
-            FileTypeOptions = new List<ImageFormat>(_imagingService.SupportedImageFormats);
+            FileTypeOptionIds = new List<string>(_imageIoService.WritableFileFormats.Select(wff => wff.Id));
+            FileTypeOptionNames = new Dictionary<string, string>();
+            foreach(var ff in _imageIoService.WritableFileFormats)
+                FileTypeOptionNames.Add(ff.Id, ff.Name);
         }
 
         /// <summary>
@@ -296,7 +311,7 @@ namespace DSImager.ViewModels
         /// </summary>
         private void CreateNewSequenceEntry()
         {
-            SelectedSession.ImageSequences.Add(new ImageSequence());
+            SelectedSession.ImageSequences.Add(new ImageSequence() { FileFormat = _imageIoService.WritableFileFormats.FirstOrDefault().Id });
             SelectedSequenceIndex = SelectedSession.ImageSequences.Count - 1;
         }
 
@@ -331,6 +346,7 @@ namespace DSImager.ViewModels
         /// </summary>
         private void StartImaging()
         {
+            SelectedSession.SaveOutput = true;
             CloseDialog();
         }
 
@@ -359,7 +375,7 @@ namespace DSImager.ViewModels
 
     public class SessionDialogViewModelDT : SessionDialogViewModel
     {
-        public SessionDialogViewModelDT() : base(null, null, null, null)
+        public SessionDialogViewModelDT() : base(null, null, null, null, null)
         {
         }
     }

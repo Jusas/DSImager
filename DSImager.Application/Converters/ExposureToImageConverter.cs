@@ -33,11 +33,6 @@ namespace DSImager.Application.Converters
                 }
              
                 var fullRect = new Int32Rect(0, 0, (int) _exposureBitmap.Width, (int) _exposureBitmap.Height);
-                //var pbuf = (int) _exposureBitmap.BackBuffer;
-                //GCHandle pinnedExposureBuf = GCHandle.Alloc(exposure.Pixels8Bit, GCHandleType.Pinned);
-                //IntPtr exposureBufPtr = pinnedExposureBuf.AddrOfPinnedObject();
-                //_exposureBitmap.WritePixels(fullRect, exposureBufPtr, exposure.Pixels8Bit.Length, exposure.Width);
-                //pinnedExposureBuf.Free();
 
                 GCHandle pinnedExposureBuf = GCHandle.Alloc(exposure.Pixels8Bit, GCHandleType.Pinned);
                 IntPtr exposureBufPtr = pinnedExposureBuf.AddrOfPinnedObject();
@@ -48,6 +43,7 @@ namespace DSImager.Application.Converters
                 _exposureBitmap.Unlock();
 
                 return _exposureBitmap;
+                
             }
 
             return null;

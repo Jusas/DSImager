@@ -54,6 +54,7 @@ namespace DSImager.Application
             container.Register<IStorageService, StorageService>(Lifestyle.Singleton);
             container.Register<ICameraService, CameraService>(Lifestyle.Singleton);
             container.Register<IImagingService, ImagingService>(Lifestyle.Singleton);
+            container.Register<IImageIoService, ImageIoService>(Lifestyle.Singleton);
  
             var viewModelTypes =
                 GetAllTypesImplementingOpenGenericType(typeof (IViewModel<>), assembly).ToList();
@@ -73,7 +74,10 @@ namespace DSImager.Application
             deviceProvider.Register<ICameraV2, Camera>();
             deviceProvider.Register<IFilterWheelV2, FilterWheel>();
             deviceProvider.Register<ITelescopeV3, Telescope>();
-            
+
+            var imageIoService = container.GetInstance<IImageIoService>();
+            var fitsWriter = new FitsWriter();
+            imageIoService.RegisterImageWriter(fitsWriter.Format, fitsWriter);
 
             container.Verify();
             return container;
