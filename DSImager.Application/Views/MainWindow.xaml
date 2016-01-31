@@ -94,6 +94,7 @@
 					Margin="4,0"
 					ToolTip="Take snapshot"
                     Command="{Binding PreviewExposureCommand}" Foreground="White"
+
                         />
                 <!-- video camera f03d -->
                 <!-- stop f04d -->

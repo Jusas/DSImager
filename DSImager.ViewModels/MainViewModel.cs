@@ -431,42 +431,61 @@ namespace DSImager.ViewModels
 
         private void OnImageSequenceCompleted(ImagingSession session, ImageSequence sequence)
         {
-            CurrentSessionInformation = new SessionInformation(session, "");
+            CurrentSessionInformation = new SessionInformation(session);
+            LogService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Image sequence '" + sequence.Name + "' completed."));
         }
 
         private void OnImageSequenceStarted(ImagingSession session, ImageSequence sequence)
         {
-            CurrentSessionInformation = new SessionInformation(session, "");
+            CurrentSessionInformation = new SessionInformation(session);
+            string logMsg = "";
+            if (sequence.CurrentExposureIndex == 0)
+                logMsg += "Image sequence '" + sequence.Name + "' started.";
+            else
+            {
+                logMsg += "Resuming image sequence '" + sequence.Name + "'.";
+            }
+            LogService.LogMessage(new LogMessage(this, LogEventCategory.Informational, logMsg));
         }
 
         private void OnExposureStarted(double duration)
         {
             IsExposuring = true;
+            LogService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Exposure started (" + duration + "s)"));
         }
 
         private void OnImagingSessionStarted(ImagingSession session)
         {
             IsInSession = true;
             CurrentSession = session;
-            CurrentSessionInformation = new SessionInformation(session, "");
+            CurrentSessionInformation = new SessionInformation(session);
+            LogService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Started imaging session '" + session.Name + "'."));
         }
 
         private void OnImagingSessionCompleted(ImagingSession session, bool completedSuccessfully, bool canceledByUser)
         {
+            IsSessionPaused = false;
             IsInSession = false;
             CurrentSessionInformation = null;
+            CurrentSession = null;
+            LogService.LogMessage(new LogMessage(this, LogEventCategory.Informational,
+                "Imaging session '" + session.Name + "' completed " + 
+                (completedSuccessfully ? "successfully" : "unsuccessfully") + 
+                (canceledByUser ? ", the session was canceled by user." : "") ));
         }
 
         private void OnImagingSessionResumed(ImagingSession session)
         {
             IsSessionPaused = false;
-            CurrentSessionInformation = new SessionInformation(session, "");
+            CurrentSessionInformation = new SessionInformation(session);
+            LogService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Resuming session '" + session.Name + "'."));
         }
 
         private void OnImagingSessionPaused(ImagingSession session, string reason, bool error)
         {
             IsSessionPaused = true;
             CurrentSessionInformation = new SessionInformation(session, reason, error);
+            LogService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Imaging session '" + session.Name + "' has been paused."));
         }
 
 
@@ -525,11 +544,8 @@ namespace DSImager.ViewModels
         /// Pauses the capturing operation.
         /// </summary>
         private void PauseCapture()
-        {
-            if (UiState == MainViewState.Imaging)
-            {                
-                _imagingService.PauseCurrentImagingOperation("Paused by user", false);
-            }
+        {          
+            _imagingService.PauseCurrentImagingOperation("Paused by user", false);
         }
 
         /// <summary>
@@ -586,10 +602,11 @@ namespace DSImager.ViewModels
         {
             // Update the progress bar text and value.
             CurrentExposureProgress = (int)Math.Min(100.0, (currentExposureDuration / targetExposureDuration * 100.0));
-            var exposureNum = _imagingService.CurrentImageSequence.CurrentExposureIndex + 1;
-            var totalExposures = _imagingService.CurrentImageSequence.NumExposures;
-            double remainingExposureTime = (totalExposures - exposureNum + 1) *
-                                           _imagingService.CurrentImageSequence.ExposureDuration - currentExposureDuration;
+            var exposureNum = _imagingService.CurrentImageSequence != null ? _imagingService.CurrentImageSequence.CurrentExposureIndex + 1 : 1;
+            var totalExposures = _imagingService.CurrentImageSequence != null ? _imagingService.CurrentImageSequence.NumExposures : 1;
+            double remainingExposureTime = _imagingService.CurrentImageSequence != null ? (totalExposures - exposureNum + 1) *
+                                           _imagingService.CurrentImageSequence.ExposureDuration - currentExposureDuration
+                                           : targetExposureDuration - currentExposureDuration;
             var remainingStr = TimeSpan.FromSeconds(remainingExposureTime).ToString("hh\\:mm\\:ss");
             if (phase == ExposurePhase.Exposuring)
             {

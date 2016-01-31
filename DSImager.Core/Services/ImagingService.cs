@@ -85,27 +85,6 @@ namespace DSImager.Core.Services
 
         public async Task TakeSingleExposure(double duration, int binXY, Rect? areaRect)
         {
-            /*
-            var previewSequence = new ImageSequence();
-            previewSequence.ExposureDuration = duration;
-            previewSequence.BinXY = binXY;
-            var sequences = new[] { previewSequence };
-            if(areaRect == null)
-                areaRect = new Rect {
-                    Width = _cameraService.ConnectedCamera.CameraXSize,
-                    Height = _cameraService.ConnectedCamera.CameraYSize,
-                    X = 0,
-                    Y = 0
-                };
-
-            var previewSession = new ImagingSession(sequences)
-            {
-                AreaRect = areaRect.Value,
-                Name = "Preview"
-            };
-
-            await RunImagingSession(previewSession);
-             * */
 
             // Set binning for the camera accordingly.
             _cameraService.ConnectedCamera.BinX = (short)binXY;
@@ -130,7 +109,9 @@ namespace DSImager.Core.Services
             _cameraService.ConnectedCamera.NumY = rect.Height / binXY;
 
             _cameraService.OnExposureCompleted += OnExposureCompleted;
-
+            
+            // When taking a single shot we have no session.
+            CurrentImagingSession = null;
             var result = await _cameraService.TakeExposure(duration, false);
             if (!result)
             {
@@ -262,6 +243,7 @@ namespace DSImager.Core.Services
 
             if (!IsSessionPaused)
             {
+                CurrentImagingSession = null;
                 if (OnImagingSessionCompleted != null)
                     OnImagingSessionCompleted(session, true, false);
             }
@@ -288,6 +270,7 @@ namespace DSImager.Core.Services
 
             // Store the session and set paused true.
             _storedSession = CurrentImagingSession;
+            CurrentImagingSession = null;
             IsSessionPaused = true;
 
             // Stop any exposure in progress.
@@ -318,6 +301,7 @@ namespace DSImager.Core.Services
             IsSessionPaused = false;
             
             CancelCurrentImagingOperation();
+            CurrentImagingSession = null;
 
             if (OnImagingSessionCompleted != null)
                 OnImagingSessionCompleted(session, false, true);

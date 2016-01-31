@@ -152,7 +152,7 @@
         </Grid>
 
         <StackPanel Margin="0,0,0,0" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" >
-            <Button Content="Start Session" Margin="0,0,0,5">
+            <Button Content="Start Session" Margin="0,0,0,5" Command="{Binding StartCommand}">
                 <Button.IsEnabled>
                     <MultiBinding Converter="{StaticResource BoolMultiConverter}">
                         <Binding Path="SelectedSession"></Binding>
