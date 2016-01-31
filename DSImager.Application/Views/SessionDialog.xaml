@@ -215,7 +215,7 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-                <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Height="25" Width="74" VerticalAlignment="Top" Margin="0,5,0,0">
+                <StackPanel Grid.Column="0" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Height="25" Width="125" VerticalAlignment="Top" Margin="0,5,0,0">
                     <ToolBarTray Height="25">
                         <ToolBarTray.Style>
                             <Style TargetType="{x:Type ToolBarTray}">
@@ -231,6 +231,12 @@
                                     <GradientStop Color="#00F7F7F7" Offset="1"/>
                                 </LinearGradientBrush>
                             </ToolBar.Background>
+                            <Button Height="20" Width="20" BorderThickness="0" x:Name="MoveSequenceUpButton" Margin="0,0,5,0" Command="{Binding MoveSelectedSequenceEntryUpCommand}" IsEnabled="{Binding SelectedSequence, Converter={StaticResource NotNullConverter}}">
+                                <fa:ImageAwesome Icon="ArrowUp"/>
+                            </Button>
+                            <Button Height="20" Width="20" BorderThickness="0" x:Name="MoveSequenceDownButton" Margin="0,0,5,0" Command="{Binding MoveSelectedSequenceEntryDownCommand}" IsEnabled="{Binding SelectedSequence, Converter={StaticResource NotNullConverter}}">
+                                <fa:ImageAwesome Icon="ArrowDown"/>
+                            </Button>
                             <Button Height="20" Width="20" BorderThickness="0" x:Name="NewSequenceButton" Margin="0,0,5,0" Command="{Binding CreateNewSequenceEntryCommand}">
                                 <fa:ImageAwesome Icon="FileOutlined"/>
                             </Button>

@@ -333,6 +333,28 @@ namespace DSImager.ViewModels
             SelectedSequenceIndex = -1;
         }
 
+        private void MoveSelectedSequenceUp()
+        {
+            var sequenceIndex = SelectedSession.ImageSequences.IndexOf(SelectedSequence);
+            if (sequenceIndex > 0)
+            {
+                var newSequenceIndex = sequenceIndex - 1;
+                SelectedSession.ImageSequences.Move(sequenceIndex, newSequenceIndex);
+                SelectedSequenceIndex = newSequenceIndex;
+            }
+        }
+
+        private void MoveSelectedSequenceDown()
+        {
+            var sequenceIndex = SelectedSession.ImageSequences.IndexOf(SelectedSequence);
+            if (sequenceIndex < SelectedSession.ImageSequences.Count - 1)
+            {
+                var newSequenceIndex = sequenceIndex + 1;
+                SelectedSession.ImageSequences.Move(sequenceIndex, newSequenceIndex);
+                SelectedSequenceIndex = newSequenceIndex;
+            }
+        }
+
         /// <summary>
         /// Closes the dialog.
         /// </summary>
@@ -347,6 +369,7 @@ namespace DSImager.ViewModels
         private void StartImaging()
         {
             SelectedSession.SaveOutput = true;
+            _imagingService.RunImagingSession(SelectedSession);
             CloseDialog();
         }
 
@@ -367,6 +390,8 @@ namespace DSImager.ViewModels
         public ICommand CreateNewSequenceEntryCommand { get { return new CommandHandler(CreateNewSequenceEntry); } }
         public ICommand CopySelectedSequenceEntryCommand { get { return new CommandHandler(CopySelectedSequenceEntry); } }
         public ICommand DeleteSelectedSequenceEntryCommand { get { return new CommandHandler(DeleteSelectedSequenceEntry); } }
+        public ICommand MoveSelectedSequenceEntryUpCommand { get { return new CommandHandler(MoveSelectedSequenceUp); } }
+        public ICommand MoveSelectedSequenceEntryDownCommand { get { return new CommandHandler(MoveSelectedSequenceDown); } }
 
 
         #endregion

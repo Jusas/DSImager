@@ -14,6 +14,36 @@ namespace DSImager.ViewModels
     public class MainViewModel : BaseViewModel<MainViewModel>
     {
 
+        public class SessionInformation
+        {
+            public string SessionSequenceProgress { get; private set; }
+            public string SequenceExposureProgress { get; private set; }
+            public string CurrentSequence { get; private set; }
+            public string LastCompletedSequence { get; private set; }
+            public string NextQueuedSequence { get; private set; }
+            public string PauseReason { get; private set; }
+            public bool InErrorState { get; private set; }
+
+            public SessionInformation(ImagingSession session, string pauseReason = "", bool inErrorState = false)
+            {
+                if (session != null)
+                {
+                    var sequences = session.ImageSequences;
+                    var curSeqIndex = session.CurrentImageSequenceIndex;
+                    var sequence = sequences[curSeqIndex];
+
+                    SessionSequenceProgress = string.Format("{0}/{1} done", curSeqIndex, sequences.Count);
+                    SequenceExposureProgress = string.Format("{0}/{1} done", sequence.CurrentExposureIndex,
+                        sequence.NumExposures);
+                    CurrentSequence = sequence.Name;
+                    LastCompletedSequence = curSeqIndex == 0 ? "-" : sequences[curSeqIndex - 1].Name;
+                    NextQueuedSequence = curSeqIndex >= sequences.Count - 1 ? "-" : sequences[curSeqIndex + 1].Name;
+                    PauseReason = pauseReason;
+                    InErrorState = inErrorState;
+                }
+            }
+        }
+
         //-------------------------------------------------------------------------------------------------------
         #region FIELDS AND PROPERTIES
         //-------------------------------------------------------------------------------------------------------
@@ -225,6 +255,62 @@ namespace DSImager.ViewModels
             }
         }
 
+        private bool _isInSession = false;
+        /// <summary>
+        /// Are we running an imaging session.
+        /// </summary>
+        public bool IsInSession
+        {
+            get { return _isInSession; }
+            private set
+            {
+                SetNotifyingProperty(() => IsInSession, ref _isInSession, value);
+            }
+        }
+
+        private bool _isSessionPaused = false;
+        /// <summary>
+        /// Is the current imaging session paused.
+        /// </summary>
+        public bool IsSessionPaused
+        {
+            get { return _isSessionPaused; }
+            private set
+            {
+                SetNotifyingProperty(() => IsSessionPaused, ref _isSessionPaused, value);
+            }
+        }
+
+        private ImagingSession _currentSession;
+        /// <summary>
+        /// Reference to the current imaging session.
+        /// </summary>
+        public ImagingSession CurrentSession
+        {
+            get { return _currentSession; }
+            private set
+            {
+                SetNotifyingProperty(() => CurrentSession, ref _currentSession, value);
+            }
+        }
+
+        private SessionInformation _currentSessionInformation = new SessionInformation(null);
+
+        /// <summary>
+        /// Session information in a convenient form.
+        /// </summary>
+        public SessionInformation CurrentSessionInformation
+        {
+            get
+            {
+                return _currentSessionInformation;
+            }
+            set
+            {
+                SetNotifyingProperty(() => CurrentSessionInformation, ref _currentSessionInformation, value);
+            }
+        }
+
         private const int LogBufferSize = 30;
         private ObservableCollection<LogMessage> _logBuffer = new ObservableCollection<LogMessage>();
         /// <summary>
@@ -330,11 +416,58 @@ namespace DSImager.ViewModels
 
         private void SetupBindings()
         {
+            _cameraService.OnExposureStarted += OnExposureStarted;
             _cameraService.OnExposureProgressChanged += OnExposureProgressChanged;
             _cameraService.OnExposureCompleted += OnExposureCompleted;
             _imagingService.OnImagingComplete += OnImagingComplete;
+            
+            _imagingService.OnImagingSessionPaused += OnImagingSessionPaused;
+            _imagingService.OnImagingSessionResumed += OnImagingSessionResumed;
+            _imagingService.OnImagingSessionCompleted += OnImagingSessionCompleted;
+            _imagingService.OnImagingSessionStarted += OnImagingSessionStarted;
+            _imagingService.OnImageSequenceStarted += OnImageSequenceStarted;
+            _imagingService.OnImageSequenceCompleted += OnImageSequenceCompleted;
         }
 
+        private void OnImageSequenceCompleted(ImagingSession session, ImageSequence sequence)
+        {
+            CurrentSessionInformation = new SessionInformation(session, "");
+        }
+
+        private void OnImageSequenceStarted(ImagingSession session, ImageSequence sequence)
+        {
+            CurrentSessionInformation = new SessionInformation(session, "");
+        }
+
+        private void OnExposureStarted(double duration)
+        {
+            IsExposuring = true;
+        }
+
+        private void OnImagingSessionStarted(ImagingSession session)
+        {
+            IsInSession = true;
+            CurrentSession = session;
+            CurrentSessionInformation = new SessionInformation(session, "");
+        }
+
+        private void OnImagingSessionCompleted(ImagingSession session, bool completedSuccessfully, bool canceledByUser)
+        {
+            IsInSession = false;
+            CurrentSessionInformation = null;
+        }
+
+        private void OnImagingSessionResumed(ImagingSession session)
+        {
+            IsSessionPaused = false;
+            CurrentSessionInformation = new SessionInformation(session, "");
+        }
+
+        private void OnImagingSessionPaused(ImagingSession session, string reason, bool error)
+        {
+            IsSessionPaused = true;
+            CurrentSessionInformation = new SessionInformation(session, reason, error);
+        }
 
 
         private void OpenDeviceInfoDialog()
@@ -373,7 +506,7 @@ namespace DSImager.ViewModels
         private void PreviewExposure()
         {
             // If already previewing, we mean to stop/abort capturing.
-            if (UiState == MainViewState.Previewing)
+            if (UiState == MainViewState.Imaging)
             {
                 IsPreviewRepeating = false;
                 _imagingService.CancelCurrentImagingOperation();                
@@ -381,16 +514,38 @@ namespace DSImager.ViewModels
             else if(UiState == MainViewState.Idle)
             {
                 IsExposuring = true;
-                UiState = MainViewState.Previewing; // todo: map out the normal cycle of states. Do this before implementing stop/abort etc.
+                UiState = MainViewState.Imaging; // todo: map out the normal cycle of states. Do this before implementing stop/abort etc.
                 _imagingService.TakeSingleExposure(SelectedPreviewExposure, SelectedBinningMode.Key,
                     null);    
             }
             
         }
 
+        /// <summary>
+        /// Pauses the capturing operation.
+        /// </summary>
         private void PauseCapture()
         {
-            
+            if (UiState == MainViewState.Imaging)
+            {                
+                _imagingService.PauseCurrentImagingOperation("Paused by user", false);
+            }
+        }
+
+        /// <summary>
+        /// Stops the session capture operation.
+        /// </summary>
+        private void StopCapture()
+        {
+            _imagingService.CancelStoredImagingOperation();
+        }
+
+        /// <summary>
+        /// Resume the capture session.
+        /// </summary>
+        private void ResumeCapture()
+        {
+            _imagingService.ResumeStoredImagingOperation();
         }
 
         // Event handlers
@@ -430,7 +585,7 @@ namespace DSImager.ViewModels
         private void OnExposureProgressChanged(double currentExposureDuration, double targetExposureDuration, ExposurePhase phase)
         {
             // Update the progress bar text and value.
-            CurrentExposureProgress = (int)(currentExposureDuration / targetExposureDuration * 100.0);
+            CurrentExposureProgress = (int)Math.Min(100.0, (currentExposureDuration / targetExposureDuration * 100.0));
             var exposureNum = _imagingService.CurrentImageSequence.CurrentExposureIndex + 1;
             var totalExposures = _imagingService.CurrentImageSequence.NumExposures;
             double remainingExposureTime = (totalExposures - exposureNum + 1) *
@@ -438,12 +593,12 @@ namespace DSImager.ViewModels
             var remainingStr = TimeSpan.FromSeconds(remainingExposureTime).ToString("hh\\:mm\\:ss");
             if (phase == ExposurePhase.Exposuring)
             {
-                ExposureStatusText = string.Format("Exposure {0}/{1} | Progress: {2}% | Total Time Remaining: {3}",
+                ExposureStatusText = string.Format("Sequence exposure {0}/{1} | Progress: {2}% | Total Time Remaining: {3}",
                     exposureNum, totalExposures, CurrentExposureProgress, remainingStr);    
             }
             else if (phase == ExposurePhase.Downloading)
             {
-                ExposureStatusText = string.Format("Exposure {0}/{1} | Downloading... | Total Time Remaining: {2}",
+                ExposureStatusText = string.Format("Sequence exposure {0}/{1} | Downloading... | Total Time Remaining: {2}",
                     exposureNum, totalExposures, remainingStr);    
             }
         }
@@ -465,7 +620,7 @@ namespace DSImager.ViewModels
             LastExposure = exposure;
             LastExposure.OnHistogramStretchChanged += OnExposureHistogramStretchChanged;
 
-            if (UiState == MainViewState.Previewing && IsPreviewRepeating)
+            if (UiState == MainViewState.Imaging && IsPreviewRepeating)
             {
                 UiState = MainViewState.Idle;
                 PreviewExposure();
@@ -496,6 +651,8 @@ namespace DSImager.ViewModels
         public ICommand SetBinningCommand { get { return new CommandHandler(SetBinning); } }
         public ICommand PreviewExposureCommand { get { return new CommandHandler(PreviewExposure); } }
         public ICommand PauseCaptureCommand { get { return new CommandHandler(PauseCapture); } }
+        public ICommand StopCaptureCommand { get { return new CommandHandler(StopCapture); } }
+        public ICommand ResumeCaptureCommand { get { return new CommandHandler(ResumeCapture); } }
         public ICommand OpenLogFileCommand { get { return new CommandHandler(OpenLogFile); } }
         public ICommand OpenSessionDialogCommand { get { return new CommandHandler(OpenSessionDialog); } }
 

@@ -16,12 +16,14 @@ namespace DSImager.Core.Interfaces
 
     public delegate void CameraChosenHandler(string cameraName);
     public delegate void ExposureProgressChangedHandler(double currentExposureDuration, double targetExposureDuration, ExposurePhase phase);
+    public delegate void ExposureStartedHandler(double duration);
     public delegate void ExposureCompletedHandler(bool successful, Exposure exposure);
 
     public interface ICameraService
     {        
         event CameraChosenHandler OnCameraChosen;
         event ExposureProgressChangedHandler OnExposureProgressChanged;
+        event ExposureStartedHandler OnExposureStarted;
         event ExposureCompletedHandler OnExposureCompleted;
 
         bool Initialized { get; }

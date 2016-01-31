@@ -88,6 +88,7 @@
     <Compile Include="Converters\ListLengthMinusOneConverter.cs" />
     <Compile Include="Converters\ListToIndexListConverter.cs" />
     <Compile Include="Converters\LogCategoryToIconConverter.cs" />
+    <Compile Include="Converters\MultiVisibilityConverter.cs" />
     <Compile Include="Converters\NotNullConverter.cs" />
     <Compile Include="Converters\NumberListDoubleCollectionConverter.cs" />
     <Compile Include="Converters\CompareAndConvertToBooleanConverter.cs" />

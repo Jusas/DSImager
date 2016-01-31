@@ -19,11 +19,12 @@
     xmlns:fa="http://schemas.fontawesome.io/icons/"
     xmlns:collections1="clr-namespace:System.Collections;assembly=mscorlib"
     x:Class="DSImager.Application.Views.MainWindow"
-    Title="{Binding ViewTitle}" Height="768" Width="1366" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+    Title="{Binding ViewTitle}" Height="768" Width="1217.5" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
     WindowStartupLocation="CenterScreen">
 
     <controls:MetroWindow.Resources>
         <viewModels:MainViewModelDT x:Key="DesignViewModel"></viewModels:MainViewModelDT>
+        <converters:InvertBooleanConverter x:Key="InvertBooleanConverter"></converters:InvertBooleanConverter>
         <converters:ListToIndexListConverter x:Key="ListToIndexListConverter"></converters:ListToIndexListConverter>
         <converters:ListItemFromIndexConverter x:Key="ListItemFromIndexConverter"></converters:ListItemFromIndexConverter>
         <converters:ListLengthMinusOneConverter x:Key="ListLengthMinusOneConverter"></converters:ListLengthMinusOneConverter>
@@ -42,13 +43,13 @@
         <utils:ButtonStateContent x:Key="PreviewButtonContent">
             <utils:ButtonStateContent.StateContentPairs>
                 <system:String x:Key="{x:Static viewModelStates:MainViewState.Idle}">&#xF030;</system:String>
-                <system:String x:Key="{x:Static viewModelStates:MainViewState.Previewing}">&#xF04D;</system:String>
+                <system:String x:Key="{x:Static viewModelStates:MainViewState.Imaging}">&#xF04D;</system:String>
             </utils:ButtonStateContent.StateContentPairs>
         </utils:ButtonStateContent>
         <utils:ButtonStateContent x:Key="CaptureButtonContent">
             <utils:ButtonStateContent.StateContentPairs>
                 <system:String x:Key="{x:Static viewModelStates:MainViewState.Idle}">&#xF030;</system:String>
-                <system:String x:Key="{x:Static viewModelStates:MainViewState.Capturing}">&#xF04D;</system:String>
+                <system:String x:Key="{x:Static viewModelStates:MainViewState.Imaging}">&#xF04D;</system:String>
             </utils:ButtonStateContent.StateContentPairs>
         </utils:ButtonStateContent>
     </controls:MetroWindow.Resources>
@@ -230,14 +231,16 @@
             <ToolBar HorizontalAlignment="Left" FontSize="24">
                 <Label Content="Capture Session" FontSize="14"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="{Binding UiState, Converter={StaticResource ButtonStateContentConverter}, ConverterParameter={StaticResource CaptureButtonContent}}" 
+					Content="&#xF030;" 
 					Margin="4,0"
 					ToolTip="Select a profile and begin capturing" Foreground="White"
-                    Command="{Binding OpenSessionDialogCommand}"/>
+                    Command="{Binding OpenSessionDialogCommand}"
+                        Visibility="{Binding IsInSession, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					Content="&#xF04C;" 
 					Margin="4,0"
-					ToolTip="Manage profiles" Foreground="White" Visibility="{Binding UiState, Converter={StaticResource MainViewUiStateToVisibilityConverter}, ConverterParameter={x:Static viewModelStates:MainViewState.Capturing}}"
+					ToolTip="Pause session" Foreground="White" Visibility="{Binding IsInSession, Converter={StaticResource VisibilityConverter}}"
+                        IsEnabled="{Binding IsExposuring}"
                     Command="{Binding PauseCaptureCommand}" />
             </ToolBar>
         </ToolBarPanel>
@@ -246,6 +249,69 @@
                 <ProgressBar Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Value="{Binding CurrentExposureProgress}" Panel.ZIndex="1" Background="Black" BorderBrush="Black" Height="{Binding Parent.ActualHeight, RelativeSource={RelativeSource Self}}" Opacity="0.4" />
                 <Label Content="{Binding ExposureStatusText}" Height="30" VerticalContentAlignment="Center" TextOptions.TextFormattingMode="Display" Canvas.Top="0" FontSize="14" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" HorizontalContentAlignment="Center" />
             </Canvas>
+            <Border Visibility="{Binding IsSessionPaused, Converter={StaticResource VisibilityConverter}, ConverterParameter=True}" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" BorderBrush="#7F000000" BorderThickness="2" Panel.ZIndex="1" Margin="0,-2,0,0">
+                <Grid Name="SessionInfoCanvas" Background="#FF424032" VerticalAlignment="Top" Height="Auto" Margin="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="234"/>
+                        <ColumnDefinition Width="737*"/>
+                        <ColumnDefinition Width="235*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <fa:ImageAwesome Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}" Grid.Column="0" Icon="Warning" Width="30" Height="30" Margin="15,63,0,63" Foreground="Bisque" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <fa:ImageAwesome Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=True}" Grid.Column="0" Icon="HandStopO" Width="30" Height="30" Margin="15,63,0,63" Foreground="Crimson" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <Label Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}" Content="User interaction requested" FontWeight="Bold" Margin="60,65,0,65" Grid.Column="0" VerticalContentAlignment="Center" VerticalAlignment="Center" Height="26"/>
+                    <Label Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=True}" Content="An error has occured" FontWeight="Bold" Margin="60,65,0,65" Grid.Column="0" VerticalContentAlignment="Center" VerticalAlignment="Center" Foreground="Crimson" Height="26"/>
+                    <!-- Session Paused: reason\n   session state data: which repeat ongoing, which sequence (x/n) which exposure number (if exposureindex is smaller than length)-->
+                    <Label Margin="15,5,15,0" Grid.Column="1" HorizontalContentAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" Height="28" Grid.ColumnSpan="2" FontSize="14">Session paused</Label>
+                    <StackPanel Grid.Column="1" Margin="15,35,0,0" Grid.ColumnSpan="2" VerticalAlignment="Top" Height="106">
+                        <StackPanel.Resources>
+                            <Style x:Key="ItemTextStyle" TargetType="{x:Type TextBlock}">
+                                <Setter Property="Foreground" Value="White"></Setter>
+                                <Setter Property="Margin" Value="5,0,5,0"></Setter>
+                            </Style>
+                            <Style x:Key="ItemSubjectStyle" TargetType="{x:Type TextBlock}">
+                                <Setter Property="Foreground" Value="White"></Setter>
+                                <Setter Property="Margin" Value="5,0,5,0"></Setter>
+                                <Setter Property="FontWeight" Value="Bold"></Setter>
+                            </Style>
+                        </StackPanel.Resources>
+                        <StackPanel Orientation="Horizontal">
+                            <Label HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold">Reason:</Label>
+                            <Label HorizontalAlignment="Left" VerticalAlignment="Top" Content="{Binding CurrentSessionInformation.PauseReason}"></Label>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource ItemSubjectStyle}">Session sequence progress:</TextBlock>
+                            <TextBlock Style="{StaticResource ItemTextStyle}" Text="{Binding CurrentSessionInformation.SessionSequenceProgress}">
+                            </TextBlock>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource ItemSubjectStyle}">Sequence exposure progress:</TextBlock>
+                            <TextBlock Style="{StaticResource ItemTextStyle}" Text="{Binding CurrentSessionInformation.SequenceExposureProgress}">
+                            </TextBlock>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource ItemSubjectStyle}">Currently processing sequence:</TextBlock>
+                            <TextBlock Style="{StaticResource ItemTextStyle}" Text="{Binding CurrentSessionInformation.CurrentSequence}">
+                            </TextBlock>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource ItemSubjectStyle}">Last completed sequence:</TextBlock>
+                            <TextBlock Style="{StaticResource ItemTextStyle}" Text="{Binding CurrentSessionInformation.LastCompletedSequence}"></TextBlock>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource ItemSubjectStyle}">Next queued sequence:</TextBlock>
+                            <TextBlock Style="{StaticResource ItemTextStyle}" Text="{Binding CurrentSessionInformation.NextQueuedSequence}"></TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                    <Line Grid.Column="1" X1="0" X2="0" Y2="{Binding RelativeSource={RelativeSource Self}, Path=Parent.ActualHeight}" Stroke="Black" StrokeThickness="1" Opacity="0.5"/>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,28,15,28" Height="100">
+                        <Button Content="Stop" VerticalAlignment="Center" Margin="0,0,0,15" Background="#FF593636"
+                                Command="{Binding StopCaptureCommand}"></Button>
+                        <Button Content="Continue" VerticalAlignment="Center" Background="#FF476A4F" Height="60"
+                                Command="{Binding ResumeCaptureCommand}"></Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
             <appcontrols:ZoomableBorder Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Height="{Binding Parent.ActualHeight, RelativeSource={RelativeSource Self}}" ClipToBounds="True">
                 <Border BorderBrush="#7F97FF00" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Name="CameraImage" Source="{Binding LastExposure, Converter={StaticResource ExposureToImageConverter}}"/>

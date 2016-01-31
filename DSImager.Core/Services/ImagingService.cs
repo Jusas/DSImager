@@ -18,7 +18,6 @@ namespace DSImager.Core.Services
     /// </summary>
     public class ImagingService : IImagingService
     {
-        public List<ImageFormat> SupportedImageFormats { get; private set; }
 
         // TODO: is this supposed to be here? Images are taken in sessions, when are dark frames taken and shoud that setting be in the ImageSequence itself?
         public bool DarkFrameMode { get; set; }
@@ -27,8 +26,10 @@ namespace DSImager.Core.Services
         public event ImagingCompletedHandler OnImagingComplete;
         public event ImagingSessionStartedHandler OnImagingSessionStarted;
         public event ImagingSessionPausedHandler OnImagingSessionPaused;
-        public event ImagingSessionPausedHandler OnImagingSessionResumed;
+        public event ImagingSessionResumedHandler OnImagingSessionResumed;
         public event ImagingSessionCompletedHandler OnImagingSessionCompleted;
+        public event ImagingSequenceStartedHandler OnImageSequenceStarted;
+        public event ImagingSequenceCompletedHandler OnImageSequenceCompleted;
 
 
         private ICameraService _cameraService;
@@ -54,10 +55,6 @@ namespace DSImager.Core.Services
                 AutoStretch = true,
                 StretchMin = 0,
                 StretchMax = -1
-            };
-            SupportedImageFormats = new List<ImageFormat>()
-            {
-                ImageFormat.Fits, ImageFormat.Tiff
             };
             DarkFrameMode = false;
             IsSessionPaused = false;
@@ -88,6 +85,7 @@ namespace DSImager.Core.Services
 
         public async Task TakeSingleExposure(double duration, int binXY, Rect? areaRect)
         {
+            /*
             var previewSequence = new ImageSequence();
             previewSequence.ExposureDuration = duration;
             previewSequence.BinXY = binXY;
@@ -107,6 +105,41 @@ namespace DSImager.Core.Services
             };
 
             await RunImagingSession(previewSession);
+             * */
+
+            // Set binning for the camera accordingly.
+            _cameraService.ConnectedCamera.BinX = (short)binXY;
+            _cameraService.ConnectedCamera.BinY = (short)binXY;
+
+            // If Width or Height is 0, assume full area.
+            
+            var rect = Rect.Full;
+            if (areaRect == null || areaRect.Value.Width == 0 || areaRect.Value.Height == 0)
+            {
+                rect.Width = _cameraService.ConnectedCamera.CameraXSize;
+                rect.Height = _cameraService.ConnectedCamera.CameraYSize;
+            }
+            else
+            {
+                rect = areaRect.Value;
+            }
+
+            _cameraService.ConnectedCamera.StartX = rect.X;
+            _cameraService.ConnectedCamera.StartY = rect.Y;
+            _cameraService.ConnectedCamera.NumX = rect.Width / binXY;
+            _cameraService.ConnectedCamera.NumY = rect.Height / binXY;
+
+            _cameraService.OnExposureCompleted += OnExposureCompleted;
+
+            var result = await _cameraService.TakeExposure(duration, false);
+            if (!result)
+            {
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Error,
+                    "TakeExposure returned false; last exposure could not be taken/saved."));
+            }
+
+            _cameraService.OnExposureCompleted -= OnExposureCompleted;
+
         }
         
 
@@ -136,6 +169,9 @@ namespace DSImager.Core.Services
 
                     if(!sequence.Enabled)
                         continue;
+
+                    if (OnImageSequenceStarted != null)
+                        OnImageSequenceStarted(session, sequence);
 
                     // Set binning for the camera accordingly.
                     _cameraService.ConnectedCamera.BinX = (short)sequence.BinXY;
@@ -177,7 +213,7 @@ namespace DSImager.Core.Services
                                 "Exception occured on RunImagingSession: " + e.Message));
                             _cameraService.OnExposureCompleted -= OnExposureCompleted;
                             // Pause, do not abort. Something happened that might be fixable.
-                            PauseCurrentImagingOperation();
+                            PauseCurrentImagingOperation("Error occured. Check log entry for details. Imaging paused, session may still be continuable.", true);
                             break;
                         }
                     }
@@ -186,13 +222,20 @@ namespace DSImager.Core.Services
                         sequence.CurrentExposureIndex == sequence.NumExposures &&
                         session.CurrentImageSequenceIndex < session.ImageSequences.Count - 1)
                     {
-                        PauseCurrentImagingOperation();
+                        PauseCurrentImagingOperation("Sequence completed.", false);
                         session.CurrentImageSequenceIndex++;
+
+                        if (OnImageSequenceCompleted != null)
+                            OnImageSequenceCompleted(session, sequence);
+
                         break;
                     }
 
                     if (IsSessionPaused)
                         break;
+
+                    if (OnImageSequenceCompleted != null)
+                        OnImageSequenceCompleted(session, sequence);
                 }
 
 
@@ -200,7 +243,7 @@ namespace DSImager.Core.Services
                     session.CurrentImageSequenceIndex == session.ImageSequences.Count &&
                     session.CurrentRepeatIndex < session.RepeatTimes - 1)
                 {
-                    PauseCurrentImagingOperation();
+                    PauseCurrentImagingOperation("Session run completed.", false);
                     session.CurrentRepeatIndex++;
                     break;
                 }
@@ -219,7 +262,6 @@ namespace DSImager.Core.Services
 
             if (!IsSessionPaused)
             {
-                // Hmm, what about preview shots, if we stop preview, shouldn't we set canceledByUser=true?
                 if (OnImagingSessionCompleted != null)
                     OnImagingSessionCompleted(session, true, false);
             }
@@ -237,9 +279,9 @@ namespace DSImager.Core.Services
         }
 
         /// <summary>
-        /// 
+        /// todo reason Sequence completed
         /// </summary>
-        public void PauseCurrentImagingOperation()
+        public void PauseCurrentImagingOperation(string reason, bool error)
         {
             if (IsSessionPaused)
                 return;
@@ -255,7 +297,7 @@ namespace DSImager.Core.Services
             }
 
             if (OnImagingSessionPaused != null)
-                OnImagingSessionPaused(_storedSession);
+                OnImagingSessionPaused(_storedSession, reason, error);
         }
 
         public async Task ResumeStoredImagingOperation()
@@ -271,18 +313,17 @@ namespace DSImager.Core.Services
 
         public void CancelStoredImagingOperation()
         {
-            if (IsSessionPaused)
-            {
-                var session = _storedSession;
-                _storedSession = null;
-                IsSessionPaused = false;
-                // Just in case
-                CancelCurrentImagingOperation();
+            var session = IsSessionPaused ? _storedSession : CurrentImagingSession;
+            _storedSession = null;
+            IsSessionPaused = false;
+            
+            CancelCurrentImagingOperation();
 
-                if (OnImagingSessionCompleted != null)
-                    OnImagingSessionCompleted(session, false, true);
-            }
+            if (OnImagingSessionCompleted != null)
+                OnImagingSessionCompleted(session, false, true);
+
         }
+
 
         private void SaveExposureToDisk(Exposure exposure, string format)
         {
@@ -322,7 +363,7 @@ namespace DSImager.Core.Services
                 exposure.SetStretch();
             }
 
-            if (CurrentImagingSession.SaveOutput)
+            if (CurrentImagingSession != null && CurrentImagingSession.SaveOutput)
                 SaveExposureToDisk(exposure, CurrentImageSequence.FileFormat);
             
             if (OnImagingComplete != null)

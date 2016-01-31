@@ -27,6 +27,7 @@ namespace DSImager.Core.Services
         public event CameraChosenHandler OnCameraChosen;
         public event ExposureProgressChangedHandler OnExposureProgressChanged;
         public event ExposureCompletedHandler OnExposureCompleted;
+        public event ExposureStartedHandler OnExposureStarted;
 
         public bool Initialized
         {
@@ -130,6 +131,10 @@ namespace DSImager.Core.Services
                 BinY = _camera.BinY,
                 ExposureTime = duration
             };
+
+            if (OnExposureStarted != null)
+                OnExposureStarted(duration);
+
             _camera.StartExposure(duration, !isDarkFrame);
 
 

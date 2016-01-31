@@ -9,14 +9,13 @@ namespace DSImager.ViewModels.States
     public enum MainViewState
     {
         Idle,
-        Previewing,
-        Capturing
+        Imaging
     }
     
     /*public class MainViewState : ViewState
     {        
         public static readonly MainViewState Idle = new MainViewState("Idle");
-        public static readonly MainViewState Previewing = new MainViewState("Previewing");
+        public static readonly MainViewState Imaging = new MainViewState("Imaging");
 
         private MainViewState(string name) : base(name)
         {
