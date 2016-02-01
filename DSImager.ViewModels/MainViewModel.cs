@@ -205,6 +205,19 @@ namespace DSImager.ViewModels
             }
         }
 
+        private bool _isPreviewingEnabled = true;
+        /// <summary>
+        /// Is previewing enabled.
+        /// </summary>
+        public bool IsPreviewingEnabled
+        {
+            get { return _isPreviewingEnabled; }
+            set
+            {
+                SetNotifyingProperty(() => IsPreviewingEnabled, ref _isPreviewingEnabled, value);
+            }
+        }
+
         private int _currentExposureProgress = 0;
         /// <summary>
         /// Progress of the current exposure (shown in the progress bar)
@@ -347,12 +360,28 @@ namespace DSImager.ViewModels
 
         public override void Initialize()
         {
+            PropertyChanged += WatchPropertyChanges;
             OwnerView.OnViewLoaded += OnViewLoaded;
             OwnerView.OnViewClosed += OnViewClosed;
             // Listen to all events.
             LogService.Subscribe(LogService.GlobalLogSource,
                 LogEventCategory.Error | LogEventCategory.Informational | LogEventCategory.Warning,
                 OnLogMessage);
+        }
+
+        private void WatchPropertyChanges(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == GetPropertyName(() => IsInSession) ||
+                e.PropertyName == GetPropertyName(() => IsSessionPaused) ||
+                e.PropertyName == GetPropertyName(() => IsExposuring))
+            {
+                if (IsInSession && IsSessionPaused)
+                    IsPreviewingEnabled = true;
+                else if (!IsInSession)
+                    IsPreviewingEnabled = true;
+                else
+                    IsPreviewingEnabled = false;
+            }
         }
 
 

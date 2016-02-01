@@ -80,7 +80,7 @@
     <Compile Include="Converters\BooleanInverter.cs" />
     <Compile Include="Converters\ButtonStateContentConverter.cs" />
     <Compile Include="Converters\ComposingConverter.cs" />
-    <Compile Include="Converters\BoolMultiConverter.cs" />
+    <Compile Include="Converters\BoolMultiAndConverter.cs" />
     <Compile Include="Converters\ExposureToImageConverter.cs" />
     <Compile Include="Converters\ImageFileFormatStringConverter.cs" />
     <Compile Include="Converters\InvertBooleanConverter.cs" />
@@ -88,6 +88,8 @@
     <Compile Include="Converters\ListLengthMinusOneConverter.cs" />
     <Compile Include="Converters\ListToIndexListConverter.cs" />
     <Compile Include="Converters\LogCategoryToIconConverter.cs" />
+    <Compile Include="Converters\MultiBoolOrConverter.cs" />
+    <Compile Include="Converters\MultiBoolAndConverter.cs" />
     <Compile Include="Converters\MultiVisibilityConverter.cs" />
     <Compile Include="Converters\NotNullConverter.cs" />
     <Compile Include="Converters\NumberListDoubleCollectionConverter.cs" />

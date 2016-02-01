@@ -32,6 +32,8 @@
         <converters:LogCategoryToIconConverter x:Key="LogCategoryToIconConverter"></converters:LogCategoryToIconConverter>
         <converters:VisibilityConverter x:Key="VisibilityConverter"></converters:VisibilityConverter>
         <converters:ExposureToImageConverter x:Key="ExposureToImageConverter"></converters:ExposureToImageConverter>
+        <converters:MultiBoolAndConverter x:Key="MultiBoolAndConverter"></converters:MultiBoolAndConverter>
+        <converters:MultiBoolOrConverter x:Key="MultiBoolOrConverter"></converters:MultiBoolOrConverter>
         <converters:ComposingConverter x:Key="TickIndicesToDoublesConverter">
             <converters:ComposingConverter.Converters>
                 <converters:ListToIndexListConverter></converters:ListToIndexListConverter>
@@ -69,33 +71,58 @@
 			Height="Auto" Orientation="Horizontal">
             <ToolBar HorizontalAlignment="Left" FontSize="24">
                 <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xF0C7;" 
+                    Width="30"
+                    Height="30"
 					Margin="4,0"
-					ToolTip="Save visible frame" Foreground="White"/>
-                <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xF013;" 
+					ToolTip="Save visible frame" Foreground="White">
+                    <fa:ImageAwesome Icon="Save"></fa:ImageAwesome>
+                </Button>
+                <Button FontFamily="{DynamicResource FontAwesome}"
+                    Width="30"
+                    Height="30"
 					Margin="4,0"
-					ToolTip="Settings" Foreground="White"/>
-                <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xF06D;" 
+					ToolTip="Settings" Foreground="White">
+                    <fa:ImageAwesome Icon="Cogs"></fa:ImageAwesome>
+                </Button>
+                <Button FontFamily="{DynamicResource FontAwesome}"
+                    Width="30"
+                    Height="30"
 					Margin="4,0"
-					ToolTip="Temperature controls" Foreground="White"/>
-                <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xF05A;" 
+					ToolTip="Temperature controls" Foreground="White">
+                    <fa:ImageAwesome Icon="Fire"></fa:ImageAwesome>
+                </Button>
+                <Button FontFamily="{DynamicResource FontAwesome}"
+                    Width="30"
+                    Height="30"
 					Margin="4,0"
 					ToolTip="Camera information"
-                        Command="{Binding OpenDeviceInfoDialogCommand}" Foreground="White"/>
+                        Command="{Binding OpenDeviceInfoDialogCommand}" Foreground="White">
+                    <fa:ImageAwesome Icon="InfoCircle"></fa:ImageAwesome>
+                </Button>
                 <!-- information about the connected camera -->
             </ToolBar>
-            <ToolBar HorizontalAlignment="Left" FontSize="24">
+            <ToolBar HorizontalAlignment="Left" FontSize="24">                
                 <Label x:Name="label" Content="Preview" FontSize="14"/>
-                <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="{Binding UiState, Converter={StaticResource ButtonStateContentConverter}, ConverterParameter={StaticResource PreviewButtonContent}}" 
+                <Button FontFamily="{DynamicResource FontAwesome}"
+                    Width="30"
+                    Height="30"
 					Margin="4,0"
 					ToolTip="Take snapshot"
                     Command="{Binding PreviewExposureCommand}" Foreground="White"
-
-                        />
+                    IsEnabled="{Binding IsPreviewingEnabled}"
+                        Visibility="{Binding IsExposuring, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}">
+                    <fa:ImageAwesome Icon="Camera"></fa:ImageAwesome>
+                </Button>
+                <Button FontFamily="{DynamicResource FontAwesome}"
+                    Width="30"
+                    Height="30"
+					Margin="4,0"
+					ToolTip="Take snapshot"
+                    Command="{Binding PreviewExposureCommand}" Foreground="White"
+                    IsEnabled="{Binding IsPreviewingEnabled}"
+                        Visibility="{Binding IsExposuring, Converter={StaticResource VisibilityConverter}, ConverterParameter=True}">
+                    <fa:ImageAwesome Icon="Stop"></fa:ImageAwesome>
+                </Button>
                 <!-- video camera f03d -->
                 <!-- stop f04d -->
                 <!-- turns to stop when taking exposure -->
@@ -103,7 +130,8 @@
 					Content="{Binding}"
 					Margin="4,0"
 					Click="OnPreviewExposureClicked"
-					ToolTip="Exposure setting">
+					ToolTip="Exposure setting"
+                    IsEnabled="{Binding IsPreviewingEnabled}">
                     <Button.ContextMenu>
                         <ContextMenu BorderBrush="Transparent" VerticalOffset="0" HasDropShadow="False">
                             <MenuItem>
@@ -141,17 +169,7 @@
                     <Button.ContentTemplate>
                         <DataTemplate>
                             <Canvas Width="30" Height="30">
-                                <Label Content="&#xF017;" Height="30" Width="30" RenderTransformOrigin="0.5,0.5" 
-                                       FontSize="19">
-                                    <Label.RenderTransform>
-                                        <TransformGroup>
-                                            <ScaleTransform/>
-                                            <SkewTransform/>
-                                            <RotateTransform/>
-                                            <TranslateTransform Y="-2"/>
-                                        </TransformGroup>
-                                    </Label.RenderTransform>
-                                </Label>
+                                <fa:ImageAwesome Icon="ClockOutlined" Width="16" Height="16" Margin="4,4,0,0"></fa:ImageAwesome>
                                 <Label Content="{Binding Path=SelectedPreviewExposure}" FontSize="9" RenderTransformOrigin="0.5,0.5" Width="36"  HorizontalContentAlignment="Right">
                                     <Label.RenderTransform>
                                         <TransformGroup>
@@ -166,15 +184,18 @@
                         </DataTemplate>
                     </Button.ContentTemplate>
                 </Button>
-                <CheckBox FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xF01E;"
+                <CheckBox FontFamily="{DynamicResource FontAwesome}"
 					Margin="4,0" 
 					ToolTip="Toggle continuous exposure" Foreground="White" 
-                    IsChecked="{Binding IsPreviewRepeating}"/>
-                <Button FontFamily="{DynamicResource FontAwesome}"
+                    IsChecked="{Binding IsPreviewRepeating}"
+                    IsEnabled="{Binding IsPreviewingEnabled}" Width="30" Height="30">
+                    <fa:ImageAwesome Icon="Film"></fa:ImageAwesome>
+                </CheckBox>
+                    <Button FontFamily="{DynamicResource FontAwesome}"
                     Content="{Binding}"
 					ToolTip="Binning" 
-					Click="OnPreviewBinningClicked">
+					Click="OnPreviewBinningClicked"
+                    IsEnabled="{Binding IsPreviewingEnabled}">
                     <Button.ContextMenu>
                         <ContextMenu ItemsSource="{Binding BinningModeOptions}">
                             <ContextMenu.ItemContainerStyle>
@@ -193,17 +214,7 @@
                     <Button.ContentTemplate>
                         <DataTemplate>
                             <Canvas Width="30" Height="30">
-                                <Label Content="&#xF009;" Height="30" Width="30" RenderTransformOrigin="0.5,0.5" 
-                                       FontSize="19">
-                                    <Label.RenderTransform>
-                                        <TransformGroup>
-                                            <ScaleTransform/>
-                                            <SkewTransform/>
-                                            <RotateTransform/>
-                                            <TranslateTransform Y="-2"/>
-                                        </TransformGroup>
-                                    </Label.RenderTransform>
-                                </Label>
+                                <fa:ImageAwesome Icon="ThLarge" Width="16" Height="16" Margin="4,4,0,0"></fa:ImageAwesome>
                                 <Label Content="{Binding Path=SelectedBinningMode.Value}" FontSize="9" RenderTransformOrigin="0.5,0.5" Width="36"  HorizontalContentAlignment="Right">
                                     <Label.RenderTransform>
                                         <TransformGroup>
@@ -223,26 +234,48 @@
             <ToolBar HorizontalAlignment="Left" FontSize="24">
                 <Label Content="Image" FontSize="14"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xf1fe;" 
-					Margin="4,0"
-					ToolTip="Histogram" Foreground="White"
+                        Width="30"
+                        Height="30"
+					    Margin="4,0"
+					    ToolTip="Histogram" Foreground="White"
                         Command="{Binding OpenHistogramDialogCommand}"
-                        />
+                        >
+                    <fa:ImageAwesome Icon="AreaChart"></fa:ImageAwesome>
+                </Button>
             </ToolBar>
             <ToolBar HorizontalAlignment="Left" FontSize="24">
                 <Label Content="Capture Session" FontSize="14"/>
                 <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xF030;" 
+                    Width="30"
+                    Height="30"
 					Margin="4,0"
 					ToolTip="Select a profile and begin capturing" Foreground="White"
                     Command="{Binding OpenSessionDialogCommand}"
-                        Visibility="{Binding IsInSession, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}"/>
-                <Button FontFamily="{DynamicResource FontAwesome}" 
-					Content="&#xF04C;" 
+                        Visibility="{Binding IsInSession, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}">
+                    <fa:ImageAwesome Icon="Camera"></fa:ImageAwesome>
+                </Button>
+                <Button FontFamily="{DynamicResource FontAwesome}"
+                    Width="30"
+                    Height="30"
 					Margin="4,0"
 					ToolTip="Pause session" Foreground="White" Visibility="{Binding IsInSession, Converter={StaticResource VisibilityConverter}}"
-                        IsEnabled="{Binding IsExposuring}"
-                    Command="{Binding PauseCaptureCommand}" />
+                    Command="{Binding PauseCaptureCommand}" >
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource MultiBoolAndConverter}">
+                            <Binding Path="IsExposuring"></Binding>
+                            <Binding Path="IsInSession"></Binding>
+                            <Binding Path="IsSessionPaused"></Binding>
+                            <MultiBinding.ConverterParameter>
+                                <x:Array Type="system:Boolean">
+                                    <system:Boolean>True</system:Boolean>
+                                    <system:Boolean>True</system:Boolean>
+                                    <system:Boolean>False</system:Boolean>
+                                </x:Array>
+                            </MultiBinding.ConverterParameter>
+                        </MultiBinding>
+                    </Button.IsEnabled>
+                    <fa:ImageAwesome Icon="Pause"></fa:ImageAwesome>
+                </Button>
             </ToolBar>
         </ToolBarPanel>
         <Canvas Grid.Row="2" Name="ContentAreaCanvas">

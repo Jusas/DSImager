@@ -9,7 +9,10 @@ using System.Windows.Data;
 
 namespace DSImager.Application.Converters
 {
-    class BoolMultiConverter : IMultiValueConverter
+    /// <summary>
+    /// Multiconverter, returns true if all values are interpreted as true.
+    /// </summary>
+    class BoolMultiAndConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {

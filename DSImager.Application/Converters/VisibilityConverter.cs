@@ -42,7 +42,7 @@ namespace DSImager.Application.Converters
                 }
             }
 
-            return sourceValue == targetValue ? Visibility.Visible : Visibility.Hidden;
+            return sourceValue == targetValue ? Visibility.Visible : Visibility.Collapsed;
 
         }
 

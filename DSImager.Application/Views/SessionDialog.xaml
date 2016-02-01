@@ -18,7 +18,7 @@
         <converters:NotNullConverter x:Key="NotNullConverter"></converters:NotNullConverter>
         <converters:StringDoubleConverter x:Key="StringDoubleConverter"></converters:StringDoubleConverter>
         <converters:InvertBooleanConverter x:Key="InvertBooleanConverter"></converters:InvertBooleanConverter>
-        <converters:BoolMultiConverter x:Key="BoolMultiConverter"></converters:BoolMultiConverter>
+        <converters:BoolMultiAndConverter x:Key="BoolMultiConverter"></converters:BoolMultiAndConverter>
         <converters:ImageFileFormatStringConverter x:Key="ImageFileFormatStringConverter"></converters:ImageFileFormatStringConverter>
         <Style x:Key="DisabledListItemStyle" TargetType="{x:Type TextBlock}">
             <Style.Triggers>
@@ -86,14 +86,6 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-        </Style>
-        <Style TargetType="{x:Type fa:ImageAwesome}">
-            <Setter Property="Foreground" Value="White"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Foreground" Value="#FF767676"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
     </Window.Resources>
     <Grid d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type={x:Type viewModels:SessionDialogViewModelDT}}" Margin="10">
