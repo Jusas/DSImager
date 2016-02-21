@@ -117,6 +117,9 @@
     <Compile Include="Views\SessionDialog.xaml.cs">
       <DependentUpon>SessionDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\TemperatureDialog.xaml.cs">
+      <DependentUpon>TemperatureDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WpfApplication.cs" />
     <Page Include="Views\ConnectDialog.xaml">
       <SubType>Designer</SubType>
@@ -146,6 +149,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Views\SessionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TemperatureDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -13,31 +13,48 @@ namespace DSImager.ViewModels
 {
     public class MainViewModel : BaseViewModel<MainViewModel>
     {
-
+        /// <summary>
+        /// A little helper class to make the view bindings a little lighter.
+        /// Populates fields that are shown in the pause pane.
+        /// </summary>
         public class SessionInformation
         {
-            public string SessionSequenceProgress { get; private set; }
-            public string SequenceExposureProgress { get; private set; }
-            public string CurrentSequence { get; private set; }
-            public string LastCompletedSequence { get; private set; }
-            public string NextQueuedSequence { get; private set; }
-            public string PauseReason { get; private set; }
+            public bool WasManuallyPaused { get; private set; }
             public bool InErrorState { get; private set; }
+            public string PauseReason { get; private set; }
+            
+            public List<Tuple<string, string>> InfoItems { get; private set; }
 
-            public SessionInformation(ImagingSession session, string pauseReason = "", bool inErrorState = false)
+            public SessionInformation(ImagingSession session, string pauseReason = "", bool wasManuallyPaused = false, bool inErrorState = false)
             {
+                InfoItems = new List<Tuple<string, string>>();
                 if (session != null)
                 {
                     var sequences = session.ImageSequences;
                     var curSeqIndex = session.CurrentImageSequenceIndex;
                     var sequence = sequences[curSeqIndex];
 
-                    SessionSequenceProgress = string.Format("{0}/{1} done", curSeqIndex, sequences.Count);
-                    SequenceExposureProgress = string.Format("{0}/{1} done", sequence.CurrentExposureIndex,
-                        sequence.NumExposures);
-                    CurrentSequence = sequence.Name;
-                    LastCompletedSequence = curSeqIndex == 0 ? "-" : sequences[curSeqIndex - 1].Name;
-                    NextQueuedSequence = curSeqIndex >= sequences.Count - 1 ? "-" : sequences[curSeqIndex + 1].Name;
+                    if (wasManuallyPaused || inErrorState)
+                    {
+                        InfoItems.Add(new Tuple<string, string>(
+                            "Currently processing sequence:", string.Format("{0} ({1}/{2})", sequence.Name, curSeqIndex + 1, sequences.Count)));
+                        InfoItems.Add(new Tuple<string, string>(
+                            "Currently processing exposure:", string.Format("{0}/{1}", sequence.CurrentExposureIndex+1, sequence.NumExposures)));
+                    }
+                    else
+                    {
+                        InfoItems.Add(new Tuple<string, string>(
+                            "Completed sequence:", string.Format("{0} ({1} exposures)", sequences[curSeqIndex].Name, sequences[curSeqIndex].NumExposures)));
+                        if (curSeqIndex != sequences.Count - 1)
+                        {
+                            InfoItems.Add(new Tuple<string, string>(
+                                "Next sequence:", string.Format("{0} ({1} exposures)", sequences[curSeqIndex+1].Name, sequences[curSeqIndex+1].NumExposures)));
+                        }
+
+                        InfoItems.Add(new Tuple<string, string>(
+                            "Session sequence progress:", string.Format("{0} of {1} done", curSeqIndex+1, session.ImageSequences.Count)));
+                    }
+                    
                     PauseReason = pauseReason;
                     InErrorState = inErrorState;
                 }
@@ -331,10 +348,20 @@ namespace DSImager.ViewModels
         /// </summary>
         public ObservableCollection<LogMessage> LogMessages { get { return _logBuffer; } }
 
+        private LogMessage _lastLogMessage;
         public LogMessage LastLogMessage
         {
-            get { return LogMessages.Count > 0 ? LogMessages[0] : new LogMessage(null, LogEventCategory.Informational, "Ready"); }
+            private set
+            {
+                SetNotifyingProperty(() => LastLogMessage, ref _lastLogMessage, value);
+            }
+            get
+            {
+                return _lastLogMessage ?? new LogMessage(null, LogEventCategory.Informational, "Ready");
+            }
         }
+
+        private string _userPauseString = "Paused by user";
 
         #endregion
 
@@ -353,7 +380,11 @@ namespace DSImager.ViewModels
             _viewProvider = viewProvider;
             ViewTitle = "DSImager";
 
-            LogMessages.CollectionChanged += (sender, args) => SetNotifyingProperty(() => LastLogMessage);
+            LogMessages.CollectionChanged += (sender, args) =>
+            {
+                LastLogMessage = LogMessages[LogMessages.Count - 1];
+            };
+                
             LogMessages.Add(new LogMessage(null, LogEventCategory.Informational, "Starting up"));
         }
 
@@ -460,13 +491,11 @@ namespace DSImager.ViewModels
 
         private void OnImageSequenceCompleted(ImagingSession session, ImageSequence sequence)
         {
-            CurrentSessionInformation = new SessionInformation(session);
             LogService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Image sequence '" + sequence.Name + "' completed."));
         }
 
         private void OnImageSequenceStarted(ImagingSession session, ImageSequence sequence)
         {
-            CurrentSessionInformation = new SessionInformation(session);
             string logMsg = "";
             if (sequence.CurrentExposureIndex == 0)
                 logMsg += "Image sequence '" + sequence.Name + "' started.";
@@ -487,7 +516,6 @@ namespace DSImager.ViewModels
         {
             IsInSession = true;
             CurrentSession = session;
-            CurrentSessionInformation = new SessionInformation(session);
             LogService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Started imaging session '" + session.Name + "'."));
         }
 
@@ -506,14 +534,13 @@ namespace DSImager.ViewModels
         private void OnImagingSessionResumed(ImagingSession session)
         {
             IsSessionPaused = false;
-            CurrentSessionInformation = new SessionInformation(session);
             LogService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Resuming session '" + session.Name + "'."));
         }
 
         private void OnImagingSessionPaused(ImagingSession session, string reason, bool error)
         {
             IsSessionPaused = true;
-            CurrentSessionInformation = new SessionInformation(session, reason, error);
+            CurrentSessionInformation = new SessionInformation(session, reason, reason == _userPauseString, error);
             LogService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Imaging session '" + session.Name + "' has been paused."));
         }
 
@@ -573,8 +600,8 @@ namespace DSImager.ViewModels
         /// Pauses the capturing operation.
         /// </summary>
         private void PauseCapture()
-        {          
-            _imagingService.PauseCurrentImagingOperation("Paused by user", false);
+        {
+            _imagingService.PauseCurrentImagingOperation(_userPauseString, false);
         }
 
         /// <summary>
@@ -620,11 +647,11 @@ namespace DSImager.ViewModels
 
         private void OnLogMessage(LogMessage logMessage)
         {
-            while (_logBuffer.Count >= LogBufferSize)
+            while (LogMessages.Count >= LogBufferSize)
             {
-                _logBuffer.RemoveAt(_logBuffer.Count - 1);
+                LogMessages.RemoveAt(0);
             }
-            _logBuffer.Insert(0, logMessage);
+            LogMessages.Add(logMessage);
         }
 
         private void OnExposureProgressChanged(double currentExposureDuration, double targetExposureDuration, ExposurePhase phase)

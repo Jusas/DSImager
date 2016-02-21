@@ -284,7 +284,10 @@
                     <ProgressBar Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Value="{Binding CurrentExposureProgress}" Panel.ZIndex="1" Background="Black" BorderBrush="Black" Height="{Binding Parent.ActualHeight, RelativeSource={RelativeSource Self}}" Opacity="0.4" />
                     <Label Content="{Binding ExposureStatusText}" Height="30" VerticalContentAlignment="Center" TextOptions.TextFormattingMode="Display" Canvas.Top="0" FontSize="14" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" HorizontalContentAlignment="Center" />
                 </Canvas>
-                <Border Visibility="{Binding IsSessionPaused, Converter={StaticResource VisibilityConverter}, ConverterParameter=True}" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" BorderBrush="#7F000000" BorderThickness="2" Panel.ZIndex="1" Margin="0,-2,0,0">
+                <Border Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" BorderBrush="#7F000000" BorderThickness="2" Panel.ZIndex="1" Margin="0,-2,0,0">
+                    <Border.Visibility>
+                        <Binding Path="IsSessionPaused" Converter="{StaticResource VisibilityConverter}" ConverterParameter="True"></Binding>                        
+                    </Border.Visibility>
                     <Grid Name="SessionInfoCanvas" Background="#FF424032" VerticalAlignment="Top" Height="Auto" Margin="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="234"/>
@@ -292,9 +295,9 @@
                             <ColumnDefinition Width="235*"/>
                         </Grid.ColumnDefinitions>
 
-                        <fa:ImageAwesome Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}" Grid.Column="0" Icon="Warning" Width="30" Height="30" Margin="15,63,0,63" Foreground="Bisque" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <fa:ImageAwesome Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}" Grid.Column="0" Icon="Pause" Width="30" Height="30" Margin="15,63,0,63" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                         <fa:ImageAwesome Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=True}" Grid.Column="0" Icon="HandStopO" Width="30" Height="30" Margin="15,63,0,63" Foreground="Crimson" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                        <Label Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}" Content="User interaction requested" FontWeight="Bold" Margin="60,65,0,65" Grid.Column="0" VerticalContentAlignment="Center" VerticalAlignment="Center" Height="26"/>
+                        <Label Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}" Content="Session paused" FontWeight="Bold" Margin="60,65,0,65" Grid.Column="0" VerticalContentAlignment="Center" VerticalAlignment="Center" Height="26"/>
                         <Label Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=True}" Content="An error has occured" FontWeight="Bold" Margin="60,65,0,65" Grid.Column="0" VerticalContentAlignment="Center" VerticalAlignment="Center" Foreground="Crimson" Height="26"/>
                         <!-- Session Paused: reason\n   session state data: which repeat ongoing, which sequence (x/n) which exposure number (if exposureindex is smaller than length)-->
                         <Label Margin="15,5,15,0" Grid.Column="1" HorizontalContentAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" Height="28" Grid.ColumnSpan="2" FontSize="14">Session paused</Label>
@@ -314,29 +317,16 @@
                                 <Label HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold">Reason:</Label>
                                 <Label HorizontalAlignment="Left" VerticalAlignment="Top" Content="{Binding CurrentSessionInformation.PauseReason}"></Label>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource ItemSubjectStyle}">Session sequence progress:</TextBlock>
-                                <TextBlock Style="{StaticResource ItemTextStyle}" Text="{Binding CurrentSessionInformation.SessionSequenceProgress}">
-                                </TextBlock>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource ItemSubjectStyle}">Sequence exposure progress:</TextBlock>
-                                <TextBlock Style="{StaticResource ItemTextStyle}" Text="{Binding CurrentSessionInformation.SequenceExposureProgress}">
-                                </TextBlock>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource ItemSubjectStyle}">Currently processing sequence:</TextBlock>
-                                <TextBlock Style="{StaticResource ItemTextStyle}" Text="{Binding CurrentSessionInformation.CurrentSequence}">
-                                </TextBlock>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource ItemSubjectStyle}">Last completed sequence:</TextBlock>
-                                <TextBlock Style="{StaticResource ItemTextStyle}" Text="{Binding CurrentSessionInformation.LastCompletedSequence}"></TextBlock>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource ItemSubjectStyle}">Next queued sequence:</TextBlock>
-                                <TextBlock Style="{StaticResource ItemTextStyle}" Text="{Binding CurrentSessionInformation.NextQueuedSequence}"></TextBlock>
-                            </StackPanel>
+                            <ItemsControl ItemsSource="{Binding CurrentSessionInformation.InfoItems}" Background="Transparent">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource ItemSubjectStyle}" Text="{Binding Item1}"></TextBlock>
+                                            <TextBlock Style="{StaticResource ItemTextStyle}" Text="{Binding Item2}"></TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
                         <Line Grid.Column="1" X1="0" X2="0" Y2="{Binding RelativeSource={RelativeSource Self}, Path=Parent.ActualHeight}" Stroke="Black" StrokeThickness="1" Opacity="0.5"/>
                         <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,28,15,28" Height="100">
@@ -371,7 +361,7 @@
                                 <fa:FontAwesome Icon="{Binding Path=LogMessages[0].Category, Converter={StaticResource LogCategoryToIconConverter}}" FontFamily="{DynamicResource FontAwesome}" FontSize="14" Margin="15,0,0,0"></fa:FontAwesome>
                                 <TextBlock Margin="15,0,0,0" FontSize="11" VerticalAlignment="Center">
                                     <TextBlock.Text>
-                                        <Binding Path="LogMessages[0].Message"></Binding>
+                                        <Binding Path="LastLogMessage.Message"></Binding>
                                     </TextBlock.Text>
                                 </TextBlock>
                             </StackPanel>
