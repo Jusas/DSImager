@@ -25,6 +25,7 @@ namespace DSImager
             try
             {
                 XamlGeneratedNamespace.GeneratedApplication app = new XamlGeneratedNamespace.GeneratedApplication();
+                ((WpfApplication)container.GetInstance<IApplication>()).Initialize();
                 app.InitializeComponent();
                 var mainWin = container.GetInstance<MainWindow>();
                 container.GetInstance<ILogService>().Trace(LogEventCategory.Informational, "App is starting");

@@ -102,6 +102,7 @@
     <Compile Include="System\Rect.cs" />
     <Compile Include="System\ViewProvider.cs" />
     <Compile Include="System\XY.cs" />
+    <Compile Include="Utils\PeriodicWorkRunner.cs" />
     <Compile Include="Utils\PropertyChangedExtendedEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>

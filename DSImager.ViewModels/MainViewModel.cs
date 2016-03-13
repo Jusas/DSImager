@@ -125,6 +125,10 @@ namespace DSImager.ViewModels
         /// </summary>
         private IView<SessionDialogViewModel> _sessionDialog;
 
+        /// <summary>
+        /// Reference to the temperature dialog instance
+        /// </summary>
+        private IView<TemperatureDialogViewModel> _temperatureDialog;
 
         private int _selectedPreviewExposureIndex = 0;
         /// <summary>
@@ -571,6 +575,13 @@ namespace DSImager.ViewModels
             _sessionDialog.Show();
         }
 
+        private void OpenTemperatureDialog()
+        {
+            if (_temperatureDialog == null || _temperatureDialog.WasClosed)
+                _temperatureDialog = _viewProvider.Instantiate<TemperatureDialogViewModel>();
+            _temperatureDialog.Show();
+        }
+
         private void SetBinning(object binningModeOption)
         {
             KeyValuePair<int, string> b = (KeyValuePair<int, string>) binningModeOption;
@@ -728,6 +739,7 @@ namespace DSImager.ViewModels
         public ICommand ResumeCaptureCommand { get { return new CommandHandler(ResumeCapture); } }
         public ICommand OpenLogFileCommand { get { return new CommandHandler(OpenLogFile); } }
         public ICommand OpenSessionDialogCommand { get { return new CommandHandler(OpenSessionDialog); } }
+        public ICommand OpenTemperatureDialogCommand { get { return new CommandHandler(OpenTemperatureDialog); } }
 
         #endregion
     }

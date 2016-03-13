@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ASCOM.DeviceInterface;
 using DSImager.Core.Devices;
 using DSImager.Core.Interfaces;
 using DSImager.Core.Models;
+using DSImager.Core.Utils;
 
 namespace DSImager.Core.Services
 {
@@ -14,6 +18,7 @@ namespace DSImager.Core.Services
         #region FIELDS AND PROPERTIES
         //-------------------------------------------------------------------------------------------------------
 
+        // TODO: don't expose this. We're slowly abstracting this interface away.
         private ASCOM.DriverAccess.Camera _camera;
         private ILogService _logService;
 
@@ -24,10 +29,16 @@ namespace DSImager.Core.Services
             get { return _camera; }
         }
 
+        private IApplication _application;
+
         public event CameraChosenHandler OnCameraChosen;
         public event ExposureProgressChangedHandler OnExposureProgressChanged;
         public event ExposureCompletedHandler OnExposureCompleted;
         public event ExposureStartedHandler OnExposureStarted;
+        public event WarmUpStartedHandler OnWarmUpStarted;
+        public event WarmUpProgressChangedHandler OnWarmUpProgressChanged;
+        public event WarmUpCompletedHandler OnWarmUpCompleted;
+        public event WarmUpCompletedHandler OnWarmUpCanceled;
 
         public bool Initialized
         {
@@ -46,15 +57,99 @@ namespace DSImager.Core.Services
         private Exposure _exposure;
         public Exposure LastExposure { get { return _exposure; } }
 
+        const int StoredTemperatureHistoryLength = 36;
+        const int TemperatureQueryInterval = 5;
+
+        private CancellationTokenSource _temperatureMonitoringToken;
+        private ObservableCollection<double> _cameraTemperatureHistory = new ObservableCollection<double>();
+        public INotifyCollectionChanged CameraTemperatureUpdateNotifier
+        {
+            get
+            {
+                return _cameraTemperatureHistory;
+            }
+        }
+
+        public double[] CameraTemperatureHistory
+        {
+            get { return _cameraTemperatureHistory.ToArray(); }
+        }
+
+        public double CurrentCCDTemperature
+        {
+            get
+            {
+                if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature)
+                {
+                    return _camera.CCDTemperature;
+                }
+                return Double.NaN;
+            }
+        }
+
+        public double DesiredCCDTemperature
+        {
+            get
+            {
+                if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature)
+                {
+                    return _camera.SetCCDTemperature;
+                }
+                return Double.NaN;
+            }
+        }
+
+        public double AmbientTemperature
+        {
+            get
+            {
+                if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature)
+                {
+                    return _camera.HeatSinkTemperature;
+                }
+                return Double.NaN;
+            }
+        }
+
+        /// <summary>
+        /// Is the cooler on.
+        /// </summary>
+        public bool IsCoolerOn 
+        {
+            get
+            {
+                if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature)
+                {
+                    return _camera.CoolerOn;
+                }
+                return false;
+            } 
+        }
+
+        private bool _isWarmingUp = false;
+        /// <summary>
+        /// Is the warmup sequence happening right now.
+        /// </summary>
+        public bool IsWarmingUp
+        {
+            get
+            {
+                return _isWarmingUp;
+            }
+        }
+
+        private CancellationTokenSource _warmUpCancellationToken;
+
         #endregion
 
         //-------------------------------------------------------------------------------------------------------
         #region PUBLIC METHODS
         //-------------------------------------------------------------------------------------------------------
 
-        public CameraService(ILogService logService)
+        public CameraService(ILogService logService, IApplication application)
         {
             _logService = logService;
+            _application = application;
         }
 
         public string ChooseDevice()
@@ -87,6 +182,7 @@ namespace DSImager.Core.Services
             {
                 _camera.Connected = true;
                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Camera driver connected"));
+                InitializeMonitoring();
             }
             catch (Exception e)
             {
@@ -94,8 +190,37 @@ namespace DSImager.Core.Services
                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Error, LastError));
                 return false;
             }
-            
+
+            _application.OnAppExit += (sender, args) => UnInitialize();
+
             return true;
+        }
+
+        /// <summary>
+        /// Uninitialize, ie. clean up.
+        /// </summary>
+        public void UnInitialize()
+        {
+            if (_temperatureMonitoringToken != null)
+            {
+                _temperatureMonitoringToken.Cancel();
+            }
+            if (_camera != null && _camera.Connected)
+            {
+                // Safeguards: set CCDTemperature to ambient temperature if it can be set.
+                // Truthfully I'm not sure if this has effect after the camera gets disconnected.
+                if (_camera.CanSetCCDTemperature)
+                {
+                    _camera.SetCCDTemperature = _camera.HeatSinkTemperature;
+                }
+
+                if (_camera.CameraState != CameraStates.cameraIdle)
+                {
+                    StopOrAbortExposure();
+                }
+
+                _camera.Connected = false;
+            }
         }
 
         /// <summary>
@@ -244,8 +369,144 @@ namespace DSImager.Core.Services
             }
         }
 
+
+        public void SetDesiredCCDTemperature(double degrees)
+        {
+            if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature)
+            {
+                // Just a sanity check here.
+                int saneMin = -100;
+                int saneMax = 70;
+
+                if (degrees < saneMin || degrees > saneMax)
+                {
+                    var d = degrees;
+                    degrees = Math.Max(Math.Min(degrees, saneMax), saneMin);
+                    _logService.LogMessage(new LogMessage(this, LogEventCategory.Warning, string.Format(
+                        "Tried to set CCD temperature to a potentially nonsensical value ({0}C). Limiting it to {1}C.",
+                        d, degrees)));                    
+                }
+                _camera.SetCCDTemperature = degrees;                
+            }
+        }
+
+        public void SetCoolerOn(bool on)
+        {
+            if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature && _camera.CoolerOn != on)
+            {
+                _camera.CoolerOn = on;
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, 
+                    "Turned CCD cooler " + (on ? "on" : "off")));
+            }
+        }
+
+        public void WarmUp()
+        {            
+            if (IsWarmingUp)
+                return;
+
+            if (_camera == null || !_camera.Connected || !_camera.CanSetCCDTemperature || !_camera.CoolerOn)
+                return;
+
+            _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, 
+                "Starting CCD warmup to reach ambient temperature."));
+            RunWarmUp();
+        }
+
+        public void CancelWarmUp()
+        {
+            if (_warmUpCancellationToken != null && !_warmUpCancellationToken.IsCancellationRequested)
+            {
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Canceling warmup task."));
+                _warmUpCancellationToken.Cancel();
+            }
+        }
+
         #endregion
 
+        //-------------------------------------------------------------------------------------------------------
+        #region PRIVATE METHODS
+        //-------------------------------------------------------------------------------------------------------
+
+        private async Task RunWarmUp()
+        {
+            double step = 5;
+            double threshold = 1;
+            double maxDiff = 3;
+
+            _warmUpCancellationToken = new CancellationTokenSource();
+
+            if (OnWarmUpStarted != null)
+                OnWarmUpStarted();
+
+            do
+            {
+                var currentTemp = _camera.CCDTemperature;
+                var targetTemp = _camera.HeatSinkTemperature;
+
+                var tempDiff = targetTemp - currentTemp;
+                var sign = tempDiff / Math.Abs(tempDiff);
+                var warmUpStep = Math.Abs(tempDiff) > step ? sign * step : tempDiff;
+
+                _camera.SetCCDTemperature = _camera.CCDTemperature + warmUpStep;
+
+                while (Math.Abs(_camera.SetCCDTemperature - _camera.CCDTemperature) > threshold)
+                {
+                    if (OnWarmUpProgressChanged != null)
+                        OnWarmUpProgressChanged(targetTemp, currentTemp);
+
+                    await Task.Delay(TimeSpan.FromSeconds(30), _warmUpCancellationToken.Token);
+                    if (_warmUpCancellationToken.IsCancellationRequested)
+                    {
+                        if (OnWarmUpCanceled != null)
+                            OnWarmUpCanceled();
+                        _warmUpCancellationToken = null;
+                        return;
+                    }
+
+                    if (Math.Abs(_camera.HeatSinkTemperature - _camera.CCDTemperature) <= maxDiff)
+                        break;
+                }
+            } while (Math.Abs(_camera.HeatSinkTemperature - _camera.CCDTemperature) > maxDiff);
+            
+            _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "CCD warmup sequence completed."));
+            if (OnWarmUpCompleted != null)
+                OnWarmUpCompleted();
+
+        }
+
+        /// <summary>
+        /// Initialize periodic monitoring of the camera state.
+        /// Monitoring the temperature to keep a temperature record history.
+        /// </summary>
+        private void InitializeMonitoring()
+        {
+            _temperatureMonitoringToken = new CancellationTokenSource();
+            PeriodicWorkRunner.DoWorkAsync(new Action(GetCameraTemperature), TimeSpan.Zero,
+                new TimeSpan(0, 0, TemperatureQueryInterval), false,
+                _temperatureMonitoringToken.Token);
+        }
+
+        /// <summary>
+        /// Gets the camera temperature and updates the temperature history buffer.
+        /// </summary>
+        private void GetCameraTemperature()
+        {
+            if (_camera.Connected)
+            {
+                if (_camera.CanSetCCDTemperature)
+                {
+                    var currentTemp = _camera.CCDTemperature;
+                    while (_cameraTemperatureHistory.Count >= StoredTemperatureHistoryLength)
+                    {
+                        _cameraTemperatureHistory.RemoveAt(0);
+                    }
+                    _cameraTemperatureHistory.Add(currentTemp);
+                }
+            }
+        }
+
+        #endregion
 
     }
 }

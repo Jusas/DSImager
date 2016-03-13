@@ -101,6 +101,7 @@
     <Compile Include="Converters\StringToIntConverter.cs" />
     <Compile Include="Converters\VisibilityConverter.cs" />
     <Compile Include="Converters\XyListToPointCollectionConverter.cs" />
+    <Compile Include="Utils\AllowableCharactersTextBoxBehaviour.cs" />
     <Compile Include="Utils\ButtonStateContent.cs" />
     <Compile Include="Utils\InvokeDelegateCommandAction.cs" />
     <Compile Include="Utils\ListExtensions.cs" />

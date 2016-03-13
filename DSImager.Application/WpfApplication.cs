@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using DSImager.Application.Views;
 using DSImager.Core.Interfaces;
 
@@ -34,7 +35,25 @@ namespace DSImager.Application
         public WpfApplication()
         {
         }
-        
+
+        public void Initialize()
+        {
+            _application.Exit += ApplicationOnExit;
+            _application.Startup += ApplicationOnStartup;   
+        }
+
+        private void ApplicationOnStartup(object sender, StartupEventArgs startupEventArgs)
+        {
+            if (OnAppStartUp != null)
+                OnAppStartUp(this, startupEventArgs);
+        }
+
+        private void ApplicationOnExit(object sender, ExitEventArgs exitEventArgs)
+        {
+            if (OnAppExit != null)
+                OnAppExit(this, exitEventArgs);
+        }
+
 
         public void ExitApplication(int exitCode)
         {

@@ -3,12 +3,112 @@
         xmlns:viewModels="clr-namespace:DSImager.ViewModels;assembly=DSImager.ViewModels"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:DSImager.Application.Views"
+        xmlns:utils="clr-namespace:DSImager.Application.Utils"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:fa="http://schemas.fontawesome.io/icons/"
+        xmlns:converters="clr-namespace:DSImager.Application.Converters"
         mc:Ignorable="d"
-        Title="TemperatureDialog" Height="300" Width="300">
-    <Grid d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type={x:Type viewModels:TemperatureDialogViewModelDT}}">
-        
+        Title="Camera Temperature" Height="328.242" Width="434.951" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderBrush="Black">
+    <Window.Resources>
+        <converters:VisibilityConverter x:Key="VisibilityConverter"></converters:VisibilityConverter>
+        <converters:InvertBooleanConverter x:Key="InvertBooleanConverter"></converters:InvertBooleanConverter>
+    </Window.Resources>
+    <Grid d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type={x:Type viewModels:TemperatureDialogViewModelDT}}"
+          Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70*"/>
+            <RowDefinition Height="119*"/>
+        </Grid.RowDefinitions>
+        <Border BorderBrush="Black" BorderThickness="1" Background="Black" Name="HistogramBorder">
+            <Polygon Name="TemperatureGraph" Stretch="Fill" Fill="White">
+                <!-- Points="{Binding HistogramPolyPoints, Converter={StaticResource XyListToPointCollectionConverter}}" -->
+                <Polygon.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleY="-1"/>
+                        <SkewTransform/>
+                        <RotateTransform/>
+                        <TranslateTransform Y="{Binding ActualHeight, ElementName=TemperatureGraph, Mode=OneWay}"/>
+                    </TransformGroup>
+                </Polygon.RenderTransform>
+            </Polygon>
+        </Border>
+        <TextBlock Grid.Row="0" Foreground="DimGray" Text="{Binding GraphTopValue, StringFormat='{}{0}°C'}" VerticalAlignment="Top" Padding="5"></TextBlock>
+        <TextBlock Grid.Row="0" Foreground="DimGray" Text="{Binding GraphBottomValue, StringFormat='{}{0}°C'}" VerticalAlignment="Bottom" Padding="5"></TextBlock>
+        <Grid Grid.Row="0" Background="#E5424032" Grid.RowSpan="2" ZIndex="1" Visibility="{Binding DisplayThermalShockWarning, Converter={StaticResource VisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="34"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="91*"/>
+                <ColumnDefinition Width="160*"/>
+                <ColumnDefinition Width="160*"/>
+            </Grid.ColumnDefinitions>
+            <fa:ImageAwesome Icon="Warning" Margin="10">
+                <fa:ImageAwesome.Foreground>
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="#FFFFD100" Offset="0"/>
+                        <GradientStop Color="#FF9B7E00" Offset="1"/>
+                    </LinearGradientBrush>
+                </fa:ImageAwesome.Foreground>
+            </fa:ImageAwesome>
+            <TextBlock Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" Foreground="White" Grid.ColumnSpan="2" VerticalAlignment="Center">Warning! The temperature difference between ambient and current temperature is over 20°C! Without controlled warmup this may lead to a thermal shock and damage your equipment. Are you sure you want to proceed?</TextBlock>
+            <Button Grid.Row="1" Grid.Column="1" Margin="5,5,5,4" Background="#FF476A4F" Command="{Binding ConfirmCoolerOffCommand}">Yes, I understand</Button>
+            <Button Grid.Row="1" Grid.Column="2" Margin="5,5,5,4" Background="#FF593636" Command="{Binding CancelCoolerOffCommand}">No, cancel</Button>
+        </Grid>
+        <StackPanel Grid.Row="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock TextAlignment="Center" Text="Ambient temperature" Foreground="White" Padding="5, 15, 5, 5" FontSize="12"></TextBlock>
+                    <Label VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Foreground="White" Padding="5, 5, 5, 5" Height="40" FontSize="18"
+                           ContentStringFormat="{}{0:F2}°C" Content="{Binding AmbientTemperature}">
+                    </Label>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock TextAlignment="Center" Text="Current temperature" Foreground="White" Padding="5, 15, 5, 5" FontSize="12"></TextBlock>
+                    <Label VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Foreground="White" Padding="5, 5, 5, 5" Height="40" FontSize="18"
+                           ContentStringFormat="{}{0:F2}°C" Content="{Binding CurrentTemperature}">
+                    </Label>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock TextAlignment="Center" Text="Desired temperature" Foreground="White" Padding="5, 15, 5, 5" FontSize="12"></TextBlock>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <TextBox BorderThickness="0" Text="{Binding DesiredTemperature, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0}}" FontSize="18" TextAlignment="Center" Grid.Row="0" Grid.RowSpan="2" Height="40" VerticalContentAlignment="Center">
+                            <i:Interaction.Behaviors>
+                                <utils:AllowableCharactersTextBoxBehaviour RegularExpression="^[0-9.\-]+$" MaxLength="4" />
+                            </i:Interaction.Behaviors>
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding SetDesiredCCDTemperatureCommand}"></KeyBinding>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <Button Width="20" MinHeight="10" Height="20" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="0"
+                                Command="{Binding IncrementDesiredTemperatureCommand}">
+                            <fa:ImageAwesome Icon="ArrowUp"/>
+                        </Button>
+                        <Button Width="20" Height="20" MinHeight="10" HorizontalAlignment="Right" Grid.Row="1"
+                                Command="{Binding DecrementDesiredTemperatureCommand}">
+                            <fa:ImageAwesome Icon="ArrowDown"/>
+                        </Button>
+                    </Grid>
+
+                </StackPanel>
+            </Grid>
+            <Button Margin="0,15,0,0" Content="Set cooler on" Command="{Binding SetCoolerOnCommand}" IsEnabled="{Binding IsCoolerOn, Converter={StaticResource InvertBooleanConverter}}" Visibility="{Binding IsWarmingUp, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}"></Button>
+            <Button Margin="0,5,0,0" Content="Set cooler off" Command="{Binding SetCoolerOffSafeCommand}" IsEnabled="{Binding IsCoolerOn}" Visibility="{Binding IsWarmingUp, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}"></Button>
+            <Button Margin="0,5,0,0" Content="Warm up" IsEnabled="{Binding IsCoolerOn}" Visibility="{Binding IsWarmingUp, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}" Command="{Binding WarmUpCommand}"></Button>
+            <Button Margin="0,5,0,0" Content="Stop warm up sequence" IsEnabled="{Binding IsWarmingUp}" Visibility="{Binding IsWarmingUp, Converter={StaticResource VisibilityConverter}}" Command="{Binding CancelWarmUpCommand}"></Button>
+        </StackPanel>
     </Grid>
 </views:BaseView>
 

@@ -15,7 +15,7 @@ namespace DSImager.Application.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var xyList = value as List<XY>;
+            var xyList = value as IList<XY>;
             if (xyList == null)
                 return null;
 
