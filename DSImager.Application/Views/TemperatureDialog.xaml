@@ -10,29 +10,30 @@
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         xmlns:converters="clr-namespace:DSImager.Application.Converters"
         mc:Ignorable="d"
-        Title="Camera Temperature" Height="328.242" Width="434.951" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderBrush="Black">
+        Title="Camera Temperature" Height="356.242" Width="434.951" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderBrush="Black">
     <Window.Resources>
         <converters:VisibilityConverter x:Key="VisibilityConverter"></converters:VisibilityConverter>
         <converters:InvertBooleanConverter x:Key="InvertBooleanConverter"></converters:InvertBooleanConverter>
+        <converters:TemperatureGraphPointListConverter x:Key="TemperatureGraphPointListConverter"></converters:TemperatureGraphPointListConverter>
     </Window.Resources>
     <Grid d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type={x:Type viewModels:TemperatureDialogViewModelDT}}"
           Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="70*"/>
-            <RowDefinition Height="119*"/>
+            <RowDefinition Height="210"/>
         </Grid.RowDefinitions>
         <Border BorderBrush="Black" BorderThickness="1" Background="Black" Name="HistogramBorder">
-            <Polygon Name="TemperatureGraph" Stretch="Fill" Fill="White">
+            <Polyline Name="TemperatureGraph" Points="{Binding TemperatureGraphPointsList, Converter={StaticResource TemperatureGraphPointListConverter}}" Stroke="White" Stretch="Fill">
                 <!-- Points="{Binding HistogramPolyPoints, Converter={StaticResource XyListToPointCollectionConverter}}" -->
-                <Polygon.RenderTransform>
+                <Polyline.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform ScaleY="-1"/>
                         <SkewTransform/>
                         <RotateTransform/>
                         <TranslateTransform Y="{Binding ActualHeight, ElementName=TemperatureGraph, Mode=OneWay}"/>
                     </TransformGroup>
-                </Polygon.RenderTransform>
-            </Polygon>
+                </Polyline.RenderTransform>
+            </Polyline>
         </Border>
         <TextBlock Grid.Row="0" Foreground="DimGray" Text="{Binding GraphTopValue, StringFormat='{}{0}°C'}" VerticalAlignment="Top" Padding="5"></TextBlock>
         <TextBlock Grid.Row="0" Foreground="DimGray" Text="{Binding GraphBottomValue, StringFormat='{}{0}°C'}" VerticalAlignment="Bottom" Padding="5"></TextBlock>
@@ -58,7 +59,49 @@
             <Button Grid.Row="1" Grid.Column="1" Margin="5,5,5,4" Background="#FF476A4F" Command="{Binding ConfirmCoolerOffCommand}">Yes, I understand</Button>
             <Button Grid.Row="1" Grid.Column="2" Margin="5,5,5,4" Background="#FF593636" Command="{Binding CancelCoolerOffCommand}">No, cancel</Button>
         </Grid>
-        <StackPanel Grid.Row="1">
+        <StackPanel Grid.Row="1" VerticalAlignment="Bottom">
+            <Label Content="COOLING" HorizontalAlignment="Center" FontSize="16" FontWeight="Bold">
+                <Label.Style>
+                    <Style TargetType="{x:Type Label}">
+                        <Setter Property="Foreground" Value="White"></Setter>
+                        <Style.Resources>
+                            <Storyboard x:Key="FlashAnimation">
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0" AutoReverse="True" Duration="0:0:1.25" RepeatBehavior="Forever" />
+                            </Storyboard>
+                            <Storyboard x:Key="ColorToRed">
+                                <ColorAnimation Storyboard.TargetProperty="Foreground.Color" To="LightCoral" Duration="0:0:0.5" AutoReverse="False"/>
+                            </Storyboard>
+                            <Storyboard x:Key="ColorToBlue">
+                                <ColorAnimation Storyboard.TargetProperty="Foreground.Color" To="DodgerBlue" Duration="0:0:0.5" AutoReverse="False"/>
+                            </Storyboard>
+                            <Storyboard x:Key="ColorToWhite">
+                                <ColorAnimation Storyboard.TargetProperty="Foreground.Color" To="White" Duration="0:0:0.5" AutoReverse="False"/>
+                            </Storyboard>
+                        </Style.Resources>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCoolerOn}" Value="True">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard Name="flash" Storyboard="{StaticResource FlashAnimation}" />
+                                    <BeginStoryboard Name="coolerSetOn" Storyboard="{StaticResource ColorToBlue}" />
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <BeginStoryboard Name="coolerSetOff" Storyboard="{StaticResource ColorToWhite}" />
+                                    <StopStoryboard BeginStoryboardName="flash"/>
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding IsWarmingUp}" Value="True">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard Name="warmingUp" Storyboard="{StaticResource ColorToRed}" />
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <BeginStoryboard Storyboard="{StaticResource ColorToBlue}" />
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Label.Style>
+            </Label>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
@@ -84,19 +127,24 @@
                             <RowDefinition Height="1*"/>
                             <RowDefinition Height="1*"/>
                         </Grid.RowDefinitions>
-                        <TextBox BorderThickness="0" Text="{Binding DesiredTemperature, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0}}" FontSize="18" TextAlignment="Center" Grid.Row="0" Grid.RowSpan="2" Height="40" VerticalContentAlignment="Center">
+                        <TextBox BorderThickness="0" Text="{Binding DesiredTemperature, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:F0}}" FontSize="18" TextAlignment="Center" Grid.Row="0" Grid.RowSpan="2" Height="40" VerticalContentAlignment="Center">
                             <i:Interaction.Behaviors>
-                                <utils:AllowableCharactersTextBoxBehaviour RegularExpression="^[0-9.\-]+$" MaxLength="4" />
+                                <utils:AllowableCharactersTextBoxBehaviour RegularExpression="^[0-9.\-]+$" MaxLength="10" />
                             </i:Interaction.Behaviors>
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="KeyUp">
+                                    <i:InvokeCommandAction Command="{Binding SetDesiredCCDTemperatureCommand}"></i:InvokeCommandAction>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
                             <TextBox.InputBindings>
                                 <KeyBinding Key="Enter" Command="{Binding SetDesiredCCDTemperatureCommand}"></KeyBinding>
                             </TextBox.InputBindings>
                         </TextBox>
-                        <Button Width="20" MinHeight="10" Height="20" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="0"
+                        <Button IsEnabled="{Binding IsWarmingUp, Converter={StaticResource InvertBooleanConverter}}" Width="20" MinHeight="10" Height="20" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="0"
                                 Command="{Binding IncrementDesiredTemperatureCommand}">
                             <fa:ImageAwesome Icon="ArrowUp"/>
                         </Button>
-                        <Button Width="20" Height="20" MinHeight="10" HorizontalAlignment="Right" Grid.Row="1"
+                        <Button IsEnabled="{Binding IsWarmingUp, Converter={StaticResource InvertBooleanConverter}}" Width="20" Height="20" MinHeight="10" HorizontalAlignment="Right" Grid.Row="1"
                                 Command="{Binding DecrementDesiredTemperatureCommand}">
                             <fa:ImageAwesome Icon="ArrowDown"/>
                         </Button>

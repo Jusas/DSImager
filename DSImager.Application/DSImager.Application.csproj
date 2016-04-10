@@ -99,6 +99,7 @@
     <Compile Include="Converters\MainViewUiStateToVisibilityConverter.cs" />
     <Compile Include="Converters\StringDoubleConverter.cs" />
     <Compile Include="Converters\StringToIntConverter.cs" />
+    <Compile Include="Converters\TemperatureGraphPointListConverter.cs" />
     <Compile Include="Converters\VisibilityConverter.cs" />
     <Compile Include="Converters\XyListToPointCollectionConverter.cs" />
     <Compile Include="Utils\AllowableCharactersTextBoxBehaviour.cs" />

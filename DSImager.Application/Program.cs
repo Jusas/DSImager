@@ -32,8 +32,9 @@ namespace DSImager
                 app.Run(mainWin);
                 
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e.ToString());
                 throw;
             }
         }

@@ -192,6 +192,7 @@ namespace DSImager.ViewModels
         private void InitializeState()
         {
             IsCoolerOn = _cameraService.IsCoolerOn;
+            IsWarmingUp = _cameraService.IsWarmingUp;
             DesiredTemperature = _cameraService.DesiredCCDTemperature;
             AmbientTemperature = _cameraService.AmbientTemperature;
         }
@@ -220,8 +221,10 @@ namespace DSImager.ViewModels
             double diff = 10 - (max - min);
             int addToScale = diff > 0 ? (int)(0.5 * diff) : 0;
 
-            GraphTopValue = (int)max + addToScale;
-            GraphBottomValue = (int) min - addToScale;
+            //GraphTopValue = (int)max + addToScale;
+            //GraphBottomValue = (int) min - addToScale;
+            GraphTopValue = (int)max;
+            GraphBottomValue = (int)min;
 
             var xStep = 1.0 / tempHistory.Length;
             var points = new List<XY>();

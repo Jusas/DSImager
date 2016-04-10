@@ -418,7 +418,7 @@ namespace DSImager.Core.Services
             if (_warmUpCancellationToken != null && !_warmUpCancellationToken.IsCancellationRequested)
             {
                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Canceling warmup task."));
-                _warmUpCancellationToken.Cancel();
+                _warmUpCancellationToken.Cancel(true);
             }
         }
 
@@ -436,6 +436,7 @@ namespace DSImager.Core.Services
 
             _warmUpCancellationToken = new CancellationTokenSource();
 
+            _isWarmingUp = true;
             if (OnWarmUpStarted != null)
                 OnWarmUpStarted();
 
@@ -455,9 +456,18 @@ namespace DSImager.Core.Services
                     if (OnWarmUpProgressChanged != null)
                         OnWarmUpProgressChanged(targetTemp, currentTemp);
 
-                    await Task.Delay(TimeSpan.FromSeconds(30), _warmUpCancellationToken.Token);
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(30), _warmUpCancellationToken.Token);
+                    }
+                    catch (Exception)
+                    {
+                        _logService.LogMessage(new LogMessage(this, LogEventCategory.Verbose, "Task.Delay exception thrown"));
+                    }
+                    
                     if (_warmUpCancellationToken.IsCancellationRequested)
                     {
+                        _isWarmingUp = false;
                         if (OnWarmUpCanceled != null)
                             OnWarmUpCanceled();
                         _warmUpCancellationToken = null;
@@ -468,7 +478,8 @@ namespace DSImager.Core.Services
                         break;
                 }
             } while (Math.Abs(_camera.HeatSinkTemperature - _camera.CCDTemperature) > maxDiff);
-            
+
+            _isWarmingUp = false;
             _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "CCD warmup sequence completed."));
             if (OnWarmUpCompleted != null)
                 OnWarmUpCompleted();
@@ -481,6 +492,9 @@ namespace DSImager.Core.Services
         /// </summary>
         private void InitializeMonitoring()
         {
+            double currentTemp = _camera.Connected && _camera.CanSetCCDTemperature ? _camera.CCDTemperature : 0;
+            for(int i = 0; i < StoredTemperatureHistoryLength; i++) 
+                _cameraTemperatureHistory.Add(currentTemp);
             _temperatureMonitoringToken = new CancellationTokenSource();
             PeriodicWorkRunner.DoWorkAsync(new Action(GetCameraTemperature), TimeSpan.Zero,
                 new TimeSpan(0, 0, TemperatureQueryInterval), false,
