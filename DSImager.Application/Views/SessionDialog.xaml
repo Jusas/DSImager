@@ -129,7 +129,7 @@
                             </LinearGradientBrush>
                         </ToolBar.Background>
                         <Button Height="20" Width="20" BorderThickness="0" x:Name="NewSessionButton" Margin="0,0,5,0" Command="{Binding CreateNewSessionEntryCommand}">
-                            <fa:ImageAwesome Icon="FileOutlined" />
+                            <fa:ImageAwesome Icon="FileOutline" />
                         </Button>
                         <Button Height="20" Width="20" BorderThickness="0" x:Name="CopySessionButton" Margin="0,0,5,0" Command="{Binding CopySelectedSessionEntryCommand}" IsEnabled="{Binding SelectedSession, Converter={StaticResource NotNullConverter}}">
                             <fa:ImageAwesome Icon="Copy"/>
@@ -230,7 +230,7 @@
                                 <fa:ImageAwesome Icon="ArrowDown"/>
                             </Button>
                             <Button Height="20" Width="20" BorderThickness="0" x:Name="NewSequenceButton" Margin="0,0,5,0" Command="{Binding CreateNewSequenceEntryCommand}">
-                                <fa:ImageAwesome Icon="FileOutlined"/>
+                                <fa:ImageAwesome Icon="FileOutline"/>
                             </Button>
                             <Button Height="20" Width="20" BorderThickness="0" x:Name="CopySequenceButton" Margin="0,0,5,0" Command="{Binding CopySelectedSequenceEntryCommand}" IsEnabled="{Binding SelectedSequence, Converter={StaticResource NotNullConverter}}">
                                 <fa:ImageAwesome Icon="Copy"/>

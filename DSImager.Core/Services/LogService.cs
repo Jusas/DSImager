@@ -73,7 +73,10 @@ namespace DSImager.Core.Services
             }
 
             var now = DateTime.Now;
-            _stream = File.Open(LogFile, FileMode.Truncate, FileAccess.Write, FileShare.Read);
+            if (!File.Exists(LogFile))
+                _stream = File.Create(LogFile);
+            else
+                _stream = File.Open(LogFile, FileMode.Truncate, FileAccess.Write, FileShare.Read);
             
             _streamWriter = new StreamWriter(_stream);
             _streamWriter.WriteLine("====================================================================");

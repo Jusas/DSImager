@@ -170,7 +170,7 @@
                     <Button.ContentTemplate>
                         <DataTemplate>
                             <Canvas Width="30" Height="30">
-                                <fa:ImageAwesome Icon="ClockOutlined" Width="16" Height="16" Margin="4,4,0,0"></fa:ImageAwesome>
+                                <fa:ImageAwesome Icon="ClockOutline" Width="16" Height="16" Margin="4,4,0,0"></fa:ImageAwesome>
                                 <Label Content="{Binding Path=SelectedPreviewExposure}" FontSize="9" RenderTransformOrigin="0.5,0.5" Width="36"  HorizontalContentAlignment="Right">
                                     <Label.RenderTransform>
                                         <TransformGroup>
@@ -297,7 +297,7 @@
                         </Grid.ColumnDefinitions>
 
                         <fa:ImageAwesome Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}" Grid.Column="0" Icon="Pause" Width="30" Height="30" Margin="15,63,0,63" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                        <fa:ImageAwesome Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=True}" Grid.Column="0" Icon="HandStopO" Width="30" Height="30" Margin="15,63,0,63" Foreground="Crimson" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <fa:ImageAwesome Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=True}" Grid.Column="0" Icon="HandStopOutline" Width="30" Height="30" Margin="15,63,0,63" Foreground="Crimson" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                         <Label Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}" Content="Session paused" FontWeight="Bold" Margin="60,65,0,65" Grid.Column="0" VerticalContentAlignment="Center" VerticalAlignment="Center" Height="26"/>
                         <Label Visibility="{Binding CurrentSessionInformation.InErrorState, Converter={StaticResource VisibilityConverter}, ConverterParameter=True}" Content="An error has occured" FontWeight="Bold" Margin="60,65,0,65" Grid.Column="0" VerticalContentAlignment="Center" VerticalAlignment="Center" Foreground="Crimson" Height="26"/>
                         <!-- Session Paused: reason\n   session state data: which repeat ongoing, which sequence (x/n) which exposure number (if exposureindex is smaller than length)-->

@@ -458,7 +458,7 @@ namespace DSImager.Core.Services
 
                     try
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(30), _warmUpCancellationToken.Token);
+                        await Task.Delay(TimeSpan.FromSeconds(5), _warmUpCancellationToken.Token);
                     }
                     catch (Exception)
                     {
