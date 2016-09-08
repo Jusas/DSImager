@@ -100,12 +100,14 @@
     <Compile Include="Interfaces\ICameraProvider.cs" />
     <Compile Include="Interfaces\ICameraService.cs" />
     <Compile Include="Interfaces\IDeviceProvider.cs" />
+    <Compile Include="Interfaces\IDialogProvider.cs" />
     <Compile Include="Interfaces\IImageIoService.cs" />
     <Compile Include="Interfaces\IImageReader.cs" />
     <Compile Include="Interfaces\IImageWriter.cs" />
     <Compile Include="Interfaces\IImagingService.cs" />
     <Compile Include="Interfaces\ILogService.cs" />
     <Compile Include="Interfaces\IStorageService.cs" />
+    <Compile Include="Interfaces\ISystemEnvironment.cs" />
     <Compile Include="Interfaces\IView.cs" />
     <Compile Include="Interfaces\IViewModel.cs" />
     <Compile Include="Interfaces\IViewProvider.cs" />

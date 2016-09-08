@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reflection;
 using ASCOM.DeviceInterface;
 using ASCOM.DriverAccess;
+using DSImager.Application.AppPlatform;
+using DSImager.Application.Utils;
 using DSImager.Application.Views;
 using DSImager.Core.Devices;
 using DSImager.Core.Interfaces;
@@ -47,14 +49,17 @@ namespace DSImager.Application
 
             var container = new Container();
 
+            container.Register<ISystemEnvironment, SystemEnvironment>();
             container.Register<IApplication, WpfApplication>(Lifestyle.Singleton);
             container.Register<IViewProvider, ViewProvider>(Lifestyle.Singleton);
+            container.Register<IDialogProvider, DialogProvider>();
             container.Register<ICameraProvider, CameraProvider>(Lifestyle.Singleton);
             container.Register<ILogService, LogService>(Lifestyle.Singleton);
             container.Register<IStorageService, StorageService>(Lifestyle.Singleton);
             container.Register<ICameraService, CameraService>(Lifestyle.Singleton);
             container.Register<IImagingService, ImagingService>(Lifestyle.Singleton);
             container.Register<IImageIoService, ImageIoService>(Lifestyle.Singleton);
+            
             
  
             var viewModelTypes =

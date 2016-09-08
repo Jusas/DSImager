@@ -74,6 +74,7 @@
                     Width="30"
                     Height="30"
 					Margin="4,0"
+                    Command="{Binding SaveVisibleFrameCommand}"
 					ToolTip="Save visible frame as..." Foreground="White">
                     <fa:ImageAwesome Icon="Save"></fa:ImageAwesome>
                 </Button>

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Input;
 using ASCOM.DeviceInterface;
 using DSImager.Core.Interfaces;
@@ -104,6 +106,9 @@ namespace DSImager.ViewModels
         private IApplication _application;
         private IViewProvider _viewProvider;
         private IImagingService _imagingService;
+        private IDialogProvider _dialogProvider;
+        private ISystemEnvironment _systemEnvironment;
+        private IImageIoService _imageIoService;
 
         /// <summary>
         /// Reference to a connect dialog instance
@@ -375,13 +380,17 @@ namespace DSImager.ViewModels
         //-------------------------------------------------------------------------------------------------------
 
         public MainViewModel(ILogService logService, ICameraService cameraService, IImagingService imagingService, 
-            IViewProvider viewProvider, IApplication application)
+            IViewProvider viewProvider, IDialogProvider dialogProvider, ISystemEnvironment systemEnvironment, 
+            IImageIoService imageIoService, IApplication application)
             : base(logService)
         {
             _cameraService = cameraService;
             _imagingService = imagingService;
             _application = application;
             _viewProvider = viewProvider;
+            _dialogProvider = dialogProvider;
+            _systemEnvironment = systemEnvironment;
+            _imageIoService = imageIoService;
             ViewTitle = "DSImager";
 
             LogMessages.CollectionChanged += (sender, args) =>
@@ -631,6 +640,31 @@ namespace DSImager.ViewModels
             _imagingService.ResumeStoredImagingOperation();
         }
 
+        /// <summary>
+        /// Save the visible captured frame.
+        /// </summary>
+        private void SaveVisibleFrame()
+        {
+            // TODO Note: forcing fits file format since that's currently the only format implemented.
+
+            string filename = null;
+            string defaultFilename = string.Format("{0}-{1:F}s-{2}", "Frame", 
+                _lastExposure.MetaData.ExposureTime.ToString(CultureInfo.InvariantCulture), 
+                _lastExposure.MetaData.ExposureEndTime.ToString("yy-MM-dd__HH-mm-ss-ffff"));
+            
+            bool ok = _dialogProvider.ShowSaveDialog("Save frame as...",
+                _systemEnvironment.UserPicturesDirectory ?? _systemEnvironment.UserHomeDirectory,
+                defaultFilename, ".fits", "FITS files (.fits)|*.fits", out filename);
+
+            if (ok && filename != null)
+            {
+                var ff = _imageIoService.WritableFileFormats.First(f => f.Extension.Contains("fits"));
+                var writer = _imageIoService.GetImageWriter(ff);
+                writer.Save(_lastExposure, filename);
+            }
+        }
+
+
         // Event handlers
 
         private void OnViewLoaded(object sender, EventArgs eventArgs)
@@ -740,6 +774,7 @@ namespace DSImager.ViewModels
         public ICommand OpenLogFileCommand { get { return new CommandHandler(OpenLogFile); } }
         public ICommand OpenSessionDialogCommand { get { return new CommandHandler(OpenSessionDialog); } }
         public ICommand OpenTemperatureDialogCommand { get { return new CommandHandler(OpenTemperatureDialog); } }
+        public ICommand SaveVisibleFrameCommand { get { return new CommandHandler(SaveVisibleFrame); } }
 
         #endregion
     }
@@ -750,13 +785,13 @@ namespace DSImager.ViewModels
     /// </summary>
     public class MainViewModelDT : MainViewModel
     {
-        public MainViewModelDT() : base(null, null, null, null, null)
+        public MainViewModelDT() : base(null, null, null, null, null, null, null, null)
         {
             
         }
-        public MainViewModelDT(ILogService logService, ICameraService cameraService, IImagingService imagingService, IViewProvider viewProvider, IApplication application) : base(logService, cameraService, imagingService, viewProvider, application)
-        {
-        }
+        //public MainViewModelDT(ILogService logService, ICameraService cameraService, IImagingService imagingService, IViewProvider viewProvider, IApplication application) : base(logService, cameraService, imagingService, viewProvider, application)
+        //{
+        //}
     }
 }
 // http://stackoverflow.com/questions/7877532/wpf-event-binding-from-view-to-viewmodel

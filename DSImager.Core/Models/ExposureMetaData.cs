@@ -8,6 +8,7 @@ namespace DSImager.Core.Models
 {
     public struct ExposureMetaData
     {
+        public DateTime ExposureEndTime;
         public double ExposureTime;
         public int BinX;
         public int BinY;

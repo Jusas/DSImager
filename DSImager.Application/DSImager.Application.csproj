@@ -105,11 +105,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AppPlatform\SystemEnvironment.cs" />
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="CommandHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Utils\AllowableCharactersTextBoxBehaviour.cs" />
     <Compile Include="Utils\ButtonStateContent.cs" />
+    <Compile Include="AppPlatform\DialogProvider.cs" />
     <Compile Include="Utils\InvokeDelegateCommandAction.cs" />
     <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Views\BaseView.cs" />

@@ -300,6 +300,7 @@ namespace DSImager.Core.Services
 
                 Exposure exposure = new Exposure(imageW, imageH, pixelArr, Camera.MaxADU, false);
                 metadata.ExposureTime = Camera.LastExposureDuration;
+                metadata.ExposureEndTime = DateTime.Now;
                 exposure.MetaData = metadata;
                 _exposure = exposure;
 
