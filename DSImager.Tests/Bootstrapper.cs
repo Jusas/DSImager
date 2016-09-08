@@ -51,7 +51,6 @@ namespace DSImager.Tests
             var container = new Container();
 
             container.Register<IViewProvider, ViewProvider>(Lifestyle.Singleton);
-            container.Register<IDeviceProvider, DeviceProvider>(Lifestyle.Singleton);
             container.Register<ILogService, LogService>(Lifestyle.Singleton);
             container.Register<IStorageService, StorageService>(Lifestyle.Singleton);
             container.Register<ICameraService, CameraService>(Lifestyle.Singleton);
@@ -67,12 +66,7 @@ namespace DSImager.Tests
             viewTypes.ForEach(t => container.Register(t));
 
             var viewProvider = container.GetInstance<IViewProvider>();
-
-            var deviceProvider = container.GetInstance<IDeviceProvider>();
-            deviceProvider.Register<ICameraV2, Camera>();
-            deviceProvider.Register<IFilterWheelV2, FilterWheel>();
-            deviceProvider.Register<ITelescopeV3, Telescope>();
-
+            
             var imageIoService = container.GetInstance<IImageIoService>();
             var fitsWriter = new FitsWriter();
             imageIoService.RegisterImageWriter(fitsWriter.Format, fitsWriter);

@@ -97,7 +97,7 @@ namespace DSImager.ViewModels
         /// <summary>
         /// Reference to the currently connected camera.
         /// </summary>
-        public ICameraV2 ConnectedCamera { get { return _cameraService.ConnectedCamera; } }
+        public ICameraV2 ConnectedCamera { get { return _cameraService.Camera; } }
         private readonly ICameraService _cameraService;
 
 
@@ -441,8 +441,8 @@ namespace DSImager.ViewModels
             // whichever is smaller.
             const int scaleMax = 300;
 
-            var minExposure = _cameraService.ConnectedCamera.ExposureMin;
-            var maxExposure = _cameraService.ConnectedCamera.ExposureMax;
+            var minExposure = _cameraService.Camera.ExposureMin;
+            var maxExposure = _cameraService.Camera.ExposureMax;
 
             if (Double.IsInfinity(maxExposure) || Double.IsNaN(maxExposure) || maxExposure > scaleMax)
                 maxExposure = scaleMax;
@@ -464,7 +464,7 @@ namespace DSImager.ViewModels
 
         private void ConstructBinningOptions()
         {
-            var cam = _cameraService.ConnectedCamera;
+            var cam = _cameraService.Camera;
             // For now assume we have equal X and Y binning. Otherwise assume no support.
             var maxBinning = cam.MaxBinX == cam.MaxBinY ? cam.MaxBinX : 1;
 

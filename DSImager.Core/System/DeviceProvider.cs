@@ -7,6 +7,7 @@ using DSImager.Core.Interfaces;
 
 namespace DSImager.Core.System
 {
+    [Obsolete("Replaced with specialized device providers")]
     public class DeviceProvider : IDeviceProvider
     {
         private SimpleInjector.Container _container;

@@ -97,6 +97,7 @@
     <Compile Include="Devices\AscomCamera.cs" />
     <Compile Include="Interfaces\IApplication.cs" />
     <Compile Include="Interfaces\ICamera.cs" />
+    <Compile Include="Interfaces\ICameraProvider.cs" />
     <Compile Include="Interfaces\ICameraService.cs" />
     <Compile Include="Interfaces\IDeviceProvider.cs" />
     <Compile Include="Interfaces\IImageIoService.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="Services\ImagingService.cs" />
     <Compile Include="Services\LogService.cs" />
     <Compile Include="Services\StorageService.cs" />
+    <Compile Include="System\CameraProvider.cs" />
     <Compile Include="System\DeviceProvider.cs" />
     <Compile Include="System\FitsWriter.cs" />
     <Compile Include="System\PpmWriter.cs" />

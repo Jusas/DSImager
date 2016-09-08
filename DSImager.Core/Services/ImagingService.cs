@@ -87,26 +87,26 @@ namespace DSImager.Core.Services
         {
 
             // Set binning for the camera accordingly.
-            _cameraService.ConnectedCamera.BinX = (short)binXY;
-            _cameraService.ConnectedCamera.BinY = (short)binXY;
+            _cameraService.Camera.BinX = (short)binXY;
+            _cameraService.Camera.BinY = (short)binXY;
 
             // If Width or Height is 0, assume full area.
             
             var rect = Rect.Full;
             if (areaRect == null || areaRect.Value.Width == 0 || areaRect.Value.Height == 0)
             {
-                rect.Width = _cameraService.ConnectedCamera.CameraXSize;
-                rect.Height = _cameraService.ConnectedCamera.CameraYSize;
+                rect.Width = _cameraService.Camera.CameraXSize;
+                rect.Height = _cameraService.Camera.CameraYSize;
             }
             else
             {
                 rect = areaRect.Value;
             }
 
-            _cameraService.ConnectedCamera.StartX = rect.X;
-            _cameraService.ConnectedCamera.StartY = rect.Y;
-            _cameraService.ConnectedCamera.NumX = rect.Width / binXY;
-            _cameraService.ConnectedCamera.NumY = rect.Height / binXY;
+            _cameraService.Camera.StartX = rect.X;
+            _cameraService.Camera.StartY = rect.Y;
+            _cameraService.Camera.NumX = rect.Width / binXY;
+            _cameraService.Camera.NumY = rect.Height / binXY;
 
             _cameraService.OnExposureCompleted += OnExposureCompleted;
             
@@ -127,8 +127,8 @@ namespace DSImager.Core.Services
         public async Task RunImagingSession(ImagingSession session)
         {
 
-            int rightBound = _cameraService.ConnectedCamera.CameraXSize;
-            int bottomBound = _cameraService.ConnectedCamera.CameraYSize;
+            int rightBound = _cameraService.Camera.CameraXSize;
+            int bottomBound = _cameraService.Camera.CameraYSize;
             if (session.AreaRect.X + session.AreaRect.Width > rightBound || session.AreaRect.X < 0)
                 throw new ArgumentOutOfRangeException("areaRect", "Pixel X area out of camera pixel bounds");
             if (session.AreaRect.Y + session.AreaRect.Height > bottomBound || session.AreaRect.Y < 0)
@@ -155,21 +155,21 @@ namespace DSImager.Core.Services
                         OnImageSequenceStarted(session, sequence);
 
                     // Set binning for the camera accordingly.
-                    _cameraService.ConnectedCamera.BinX = (short)sequence.BinXY;
-                    _cameraService.ConnectedCamera.BinY = (short)sequence.BinXY;
+                    _cameraService.Camera.BinX = (short)sequence.BinXY;
+                    _cameraService.Camera.BinY = (short)sequence.BinXY;
 
                     // If Width or Height is 0, assume full area.
                     var rect = session.AreaRect;
                     if (rect.Width == 0 || rect.Height == 0)
                     {
-                        rect.Width = _cameraService.ConnectedCamera.CameraXSize;
-                        rect.Height = _cameraService.ConnectedCamera.CameraYSize;
+                        rect.Width = _cameraService.Camera.CameraXSize;
+                        rect.Height = _cameraService.Camera.CameraYSize;
                     }
 
-                    _cameraService.ConnectedCamera.StartX = rect.X;
-                    _cameraService.ConnectedCamera.StartY = rect.Y;
-                    _cameraService.ConnectedCamera.NumX = rect.Width / sequence.BinXY;
-                    _cameraService.ConnectedCamera.NumY = rect.Height / sequence.BinXY;
+                    _cameraService.Camera.StartX = rect.X;
+                    _cameraService.Camera.StartY = rect.Y;
+                    _cameraService.Camera.NumX = rect.Width / sequence.BinXY;
+                    _cameraService.Camera.NumY = rect.Height / sequence.BinXY;
 
                     for (; sequence.CurrentExposureIndex < sequence.NumExposures; sequence.CurrentExposureIndex++)
                     {

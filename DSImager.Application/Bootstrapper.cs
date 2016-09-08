@@ -49,12 +49,13 @@ namespace DSImager.Application
 
             container.Register<IApplication, WpfApplication>(Lifestyle.Singleton);
             container.Register<IViewProvider, ViewProvider>(Lifestyle.Singleton);
-            container.Register<IDeviceProvider, DeviceProvider>(Lifestyle.Singleton);
+            container.Register<ICameraProvider, CameraProvider>(Lifestyle.Singleton);
             container.Register<ILogService, LogService>(Lifestyle.Singleton);
             container.Register<IStorageService, StorageService>(Lifestyle.Singleton);
             container.Register<ICameraService, CameraService>(Lifestyle.Singleton);
             container.Register<IImagingService, ImagingService>(Lifestyle.Singleton);
             container.Register<IImageIoService, ImageIoService>(Lifestyle.Singleton);
+            
  
             var viewModelTypes =
                 GetAllTypesImplementingOpenGenericType(typeof (IViewModel<>), assembly).ToList();
@@ -70,12 +71,7 @@ namespace DSImager.Application
             viewProvider.Register<HistogramDialog, HistogramDialogViewModel>();
             viewProvider.Register<SessionDialog, SessionDialogViewModel>();
             viewProvider.Register<TemperatureDialog, TemperatureDialogViewModel>();
-
-            var deviceProvider = container.GetInstance<IDeviceProvider>();
-            deviceProvider.Register<ICameraV2, Camera>();
-            deviceProvider.Register<IFilterWheelV2, FilterWheel>();
-            deviceProvider.Register<ITelescopeV3, Telescope>();
-
+            
             var imageIoService = container.GetInstance<IImageIoService>();
             var fitsWriter = new FitsWriter();
             imageIoService.RegisterImageWriter(fitsWriter.Format, fitsWriter);

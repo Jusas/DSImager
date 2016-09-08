@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using DSImager.Core.Interfaces;
 using DSImager.Core.Models;
+using DSImager.Core.Services;
+using Moq;
 using NUnit;
 using NUnit.Framework;
 using SimpleInjector;
@@ -25,23 +28,24 @@ namespace DSImager.Tests.Services
         [OneTimeSetUp]
         public void Init()
         {
-            _container = Bootstrapper.Container;
-            _storageService = _container.GetInstance<IStorageService>();
+            var moqLogService = new Mock<ILogService>();
+            _storageService = new StorageService(moqLogService.Object);
         }
 
         [Test]
         public void SaveAndRead()
         {
-            string fn = "testJsonFile.json";
+            string fileName = Path.GetTempFileName();
             var data = new TextData()
             {
                 Items = new List<string> {"Hello", "World"},
                 Name = "Test"
             };
-            _storageService.Set(fn, data);
-            var data2 = _storageService.Get<TextData>(fn);
+            _storageService.Set(fileName, data);
+            var data2 = _storageService.Get<TextData>(fileName);
 
-            Assert.AreEqual(data2.Name, data.Name);
+            Assert.AreEqual(data.Name, data2.Name);
+            Assert.AreEqual(data.Items.Count, data2.Items.Count);
         }
 
     }

@@ -18,16 +18,13 @@ namespace DSImager.Core.Services
         #region FIELDS AND PROPERTIES
         //-------------------------------------------------------------------------------------------------------
 
-        // TODO: don't expose this. We're slowly abstracting this interface away.
-        private ASCOM.DriverAccess.Camera _camera;
+        
         private ILogService _logService;
+        private ICameraProvider _cameraProvider;
 
         public string LastError { get; set; }
 
-        public ICameraV2 ConnectedCamera
-        {
-            get { return _camera; }
-        }
+        public ICameraV2 Camera { get; private set; }
 
         private IApplication _application;
 
@@ -42,7 +39,7 @@ namespace DSImager.Core.Services
 
         public bool Initialized
         {
-            get { return _camera != null; }
+            get { return Camera != null; }
         }
 
         private bool _isExposuring = false;
@@ -79,9 +76,9 @@ namespace DSImager.Core.Services
         {
             get
             {
-                if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature)
+                if (Camera != null && Camera.Connected && Camera.CanSetCCDTemperature)
                 {
-                    return _camera.CCDTemperature;
+                    return Camera.CCDTemperature;
                 }
                 return Double.NaN;
             }
@@ -91,9 +88,9 @@ namespace DSImager.Core.Services
         {
             get
             {
-                if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature)
+                if (Camera != null && Camera.Connected && Camera.CanSetCCDTemperature)
                 {
-                    return _camera.SetCCDTemperature;
+                    return Camera.SetCCDTemperature;
                 }
                 return Double.NaN;
             }
@@ -103,9 +100,9 @@ namespace DSImager.Core.Services
         {
             get
             {
-                if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature)
+                if (Camera != null && Camera.Connected && Camera.CanSetCCDTemperature)
                 {
-                    return _camera.HeatSinkTemperature;
+                    return Camera.HeatSinkTemperature;
                 }
                 return Double.NaN;
             }
@@ -118,9 +115,9 @@ namespace DSImager.Core.Services
         {
             get
             {
-                if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature)
+                if (Camera != null && Camera.Connected && Camera.CanSetCCDTemperature)
                 {
-                    return _camera.CoolerOn;
+                    return Camera.CoolerOn;
                 }
                 return false;
             } 
@@ -146,16 +143,16 @@ namespace DSImager.Core.Services
         #region PUBLIC METHODS
         //-------------------------------------------------------------------------------------------------------
 
-        public CameraService(ILogService logService, IApplication application)
+        public CameraService(ILogService logService, ICameraProvider cameraProvider, IApplication application)
         {
             _logService = logService;
             _application = application;
+            _cameraProvider = cameraProvider;
         }
 
         public string ChooseDevice()
         {
-            var chooser = new ASCOM.Utilities.Chooser {DeviceType = "Camera"};
-            var device = chooser.Choose();
+            var device = _cameraProvider.ChooseCameraDeviceId();
             if (OnCameraChosen != null)
                 OnCameraChosen(device);
             return device;
@@ -169,7 +166,7 @@ namespace DSImager.Core.Services
         {
             try
             {
-                _camera = new ASCOM.DriverAccess.Camera(deviceId);
+                Camera = _cameraProvider.GetCamera(deviceId);
                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Camera driver instantiated: " + deviceId));
             }
             catch (Exception e)
@@ -180,7 +177,7 @@ namespace DSImager.Core.Services
             }
             try
             {
-                _camera.Connected = true;
+                Camera.Connected = true;
                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Camera driver connected"));
                 InitializeMonitoring();
             }
@@ -205,21 +202,21 @@ namespace DSImager.Core.Services
             {
                 _temperatureMonitoringToken.Cancel();
             }
-            if (_camera != null && _camera.Connected)
+            if (Camera != null && Camera.Connected)
             {
                 // Safeguards: set CCDTemperature to ambient temperature if it can be set.
                 // Truthfully I'm not sure if this has effect after the camera gets disconnected.
-                if (_camera.CanSetCCDTemperature)
+                if (Camera.CanSetCCDTemperature)
                 {
-                    _camera.SetCCDTemperature = _camera.HeatSinkTemperature;
+                    Camera.SetCCDTemperature = Camera.HeatSinkTemperature;
                 }
 
-                if (_camera.CameraState != CameraStates.cameraIdle)
+                if (Camera.CameraState != CameraStates.cameraIdle)
                 {
                     StopOrAbortExposure();
                 }
 
-                _camera.Connected = false;
+                Camera.Connected = false;
             }
         }
 
@@ -242,7 +239,7 @@ namespace DSImager.Core.Services
             _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational,
                     string.Format("Starting new exposure: {0:F}s", duration)));
 
-            if (_camera.CameraState != CameraStates.cameraIdle)
+            if (Camera.CameraState != CameraStates.cameraIdle)
             {
                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Warning, 
                     "Camera is not in idle state, unable to start a new exposure."));
@@ -252,21 +249,21 @@ namespace DSImager.Core.Services
 
             var metadata = new ExposureMetaData()
             {
-                BinX = _camera.BinX,
-                BinY = _camera.BinY,
+                BinX = Camera.BinX,
+                BinY = Camera.BinY,
                 ExposureTime = duration
             };
 
             if (OnExposureStarted != null)
                 OnExposureStarted(duration);
 
-            _camera.StartExposure(duration, !isDarkFrame);
+            Camera.StartExposure(duration, !isDarkFrame);
 
 
             var startTime = DateTime.Now;
             TimeSpan currentDuration = TimeSpan.Zero;
-            while (!_camera.ImageReady && (_camera.CameraState != CameraStates.cameraExposing ||
-                    _camera.CameraState != CameraStates.cameraReading))
+            while (!Camera.ImageReady && (Camera.CameraState != CameraStates.cameraExposing ||
+                    Camera.CameraState != CameraStates.cameraReading))
             {
                 await Task.Delay(200);
                 currentDuration = DateTime.Now - startTime;
@@ -275,7 +272,7 @@ namespace DSImager.Core.Services
             }
 
             // Done, download the image.
-            if (_camera.ImageReady)
+            if (Camera.ImageReady)
             {
                 if (OnExposureProgressChanged != null)
                     OnExposureProgressChanged(currentDuration.TotalSeconds, duration, ExposurePhase.Downloading);
@@ -283,7 +280,7 @@ namespace DSImager.Core.Services
                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational,
                     "Exposure ready, downloading..."));
 
-                int[,] imgArr = (int[,]) _camera.ImageArray;
+                int[,] imgArr = (int[,])Camera.ImageArray;
                 int imageW = imgArr.GetLength(0);
                 int imageH = imgArr.GetLength(1);
 
@@ -301,8 +298,8 @@ namespace DSImager.Core.Services
                 }
                 
 
-                Exposure exposure = new Exposure(imageW, imageH, pixelArr, _camera.MaxADU, false);
-                metadata.ExposureTime = _camera.LastExposureDuration;
+                Exposure exposure = new Exposure(imageW, imageH, pixelArr, Camera.MaxADU, false);
+                metadata.ExposureTime = Camera.LastExposureDuration;
                 exposure.MetaData = metadata;
                 _exposure = exposure;
 
@@ -335,7 +332,7 @@ namespace DSImager.Core.Services
 
         public void StopOrAbortExposure()
         {
-            if (_camera.CanStopExposure)
+            if (Camera.CanStopExposure)
             {
                 StopExposure();
             }
@@ -347,32 +344,32 @@ namespace DSImager.Core.Services
 
         public void StopExposure()
         {
-            if(!_camera.CanStopExposure)
+            if(!Camera.CanStopExposure)
                 throw new NotImplementedException("Camera does not support stopping exposures");
 
-            if (_camera.CameraState == CameraStates.cameraExposing)
+            if (Camera.CameraState == CameraStates.cameraExposing)
             {
                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Stopping exposure"));
-                _camera.StopExposure();
+                Camera.StopExposure();
             }
         }
 
         public void AbortExposure()
         {
-            if (!_camera.CanAbortExposure)
+            if (!Camera.CanAbortExposure)
                 throw new NotImplementedException("Camera does not support aborting exposures");
 
-            if (_camera.CameraState == CameraStates.cameraExposing)
+            if (Camera.CameraState == CameraStates.cameraExposing)
             {
                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Aborting exposure"));
-                _camera.AbortExposure();
+                Camera.AbortExposure();
             }
         }
 
 
         public void SetDesiredCCDTemperature(double degrees)
         {
-            if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature)
+            if (Camera != null && Camera.Connected && Camera.CanSetCCDTemperature)
             {
                 // Just a sanity check here.
                 int saneMin = -100;
@@ -386,15 +383,15 @@ namespace DSImager.Core.Services
                         "Tried to set CCD temperature to a potentially nonsensical value ({0}C). Limiting it to {1}C.",
                         d, degrees)));                    
                 }
-                _camera.SetCCDTemperature = degrees;                
+                Camera.SetCCDTemperature = degrees;                
             }
         }
 
         public void SetCoolerOn(bool on)
         {
-            if (_camera != null && _camera.Connected && _camera.CanSetCCDTemperature && _camera.CoolerOn != on)
+            if (Camera != null && Camera.Connected && Camera.CanSetCCDTemperature && Camera.CoolerOn != on)
             {
-                _camera.CoolerOn = on;
+                Camera.CoolerOn = on;
                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, 
                     "Turned CCD cooler " + (on ? "on" : "off")));
             }
@@ -405,7 +402,7 @@ namespace DSImager.Core.Services
             if (IsWarmingUp)
                 return;
 
-            if (_camera == null || !_camera.Connected || !_camera.CanSetCCDTemperature || !_camera.CoolerOn)
+            if (Camera == null || !Camera.Connected || !Camera.CanSetCCDTemperature || !Camera.CoolerOn)
                 return;
 
             _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, 
@@ -442,16 +439,16 @@ namespace DSImager.Core.Services
 
             do
             {
-                var currentTemp = _camera.CCDTemperature;
-                var targetTemp = _camera.HeatSinkTemperature;
+                var currentTemp = Camera.CCDTemperature;
+                var targetTemp = Camera.HeatSinkTemperature;
 
                 var tempDiff = targetTemp - currentTemp;
                 var sign = tempDiff / Math.Abs(tempDiff);
                 var warmUpStep = Math.Abs(tempDiff) > step ? sign * step : tempDiff;
 
-                _camera.SetCCDTemperature = _camera.CCDTemperature + warmUpStep;
+                Camera.SetCCDTemperature = Camera.CCDTemperature + warmUpStep;
 
-                while (Math.Abs(_camera.SetCCDTemperature - _camera.CCDTemperature) > threshold)
+                while (Math.Abs(Camera.SetCCDTemperature - Camera.CCDTemperature) > threshold)
                 {
                     if (OnWarmUpProgressChanged != null)
                         OnWarmUpProgressChanged(targetTemp, currentTemp);
@@ -474,10 +471,10 @@ namespace DSImager.Core.Services
                         return;
                     }
 
-                    if (Math.Abs(_camera.HeatSinkTemperature - _camera.CCDTemperature) <= maxDiff)
+                    if (Math.Abs(Camera.HeatSinkTemperature - Camera.CCDTemperature) <= maxDiff)
                         break;
                 }
-            } while (Math.Abs(_camera.HeatSinkTemperature - _camera.CCDTemperature) > maxDiff);
+            } while (Math.Abs(Camera.HeatSinkTemperature - Camera.CCDTemperature) > maxDiff);
 
             _isWarmingUp = false;
             _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "CCD warmup sequence completed."));
@@ -492,7 +489,7 @@ namespace DSImager.Core.Services
         /// </summary>
         private void InitializeMonitoring()
         {
-            double currentTemp = _camera.Connected && _camera.CanSetCCDTemperature ? _camera.CCDTemperature : 0;
+            double currentTemp = Camera.Connected && Camera.CanSetCCDTemperature ? Camera.CCDTemperature : 0;
             for(int i = 0; i < StoredTemperatureHistoryLength; i++) 
                 _cameraTemperatureHistory.Add(currentTemp);
             _temperatureMonitoringToken = new CancellationTokenSource();
@@ -506,11 +503,11 @@ namespace DSImager.Core.Services
         /// </summary>
         private void GetCameraTemperature()
         {
-            if (_camera.Connected)
+            if (Camera.Connected)
             {
-                if (_camera.CanSetCCDTemperature)
+                if (Camera.CanSetCCDTemperature)
                 {
-                    var currentTemp = _camera.CCDTemperature;
+                    var currentTemp = Camera.CCDTemperature;
                     while (_cameraTemperatureHistory.Count >= StoredTemperatureHistoryLength)
                     {
                         _cameraTemperatureHistory.RemoveAt(0);

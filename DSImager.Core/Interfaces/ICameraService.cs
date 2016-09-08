@@ -38,7 +38,7 @@ namespace DSImager.Core.Interfaces
 
         bool Initialized { get; }
         string LastError { get; }
-        ICameraV2 ConnectedCamera { get; }
+        ICameraV2 Camera { get; }
         bool IsExposuring { get; }
         Exposure LastExposure { get; }
         INotifyCollectionChanged CameraTemperatureUpdateNotifier { get; }

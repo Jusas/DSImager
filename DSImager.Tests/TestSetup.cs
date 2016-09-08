@@ -13,7 +13,7 @@ namespace DSImager.Tests
         [OneTimeSetUp]
         public void Setup()
         {
-            Bootstrapper.DefaultBootstrap();
+            //Bootstrapper.DefaultBootstrap();
         }
     }
 }

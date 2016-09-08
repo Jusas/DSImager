@@ -128,7 +128,7 @@ namespace DSImager.ViewModels
         
         private void OnViewLoaded(object sender, EventArgs eventArgs)
         {
-            StretchMax = _cameraService.ConnectedCamera.MaxADU;
+            StretchMax = _cameraService.Camera.MaxADU;
             StretchMin = 0;
 
             _useAutoStretch = _imagingService.ExposureVisualProcessingSettings.AutoStretch;

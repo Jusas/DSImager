@@ -300,7 +300,7 @@ namespace DSImager.ViewModels
 
         private void SetDesiredCCDTemperature()
         {
-            if (_cameraService.ConnectedCamera != null)
+            if (_cameraService.Camera != null)
                 _cameraService.SetDesiredCCDTemperature(DesiredTemperature);
         }
 

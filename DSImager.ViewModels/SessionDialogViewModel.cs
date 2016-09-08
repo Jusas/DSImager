@@ -211,8 +211,8 @@ namespace DSImager.ViewModels
         {
             const int scaleMax = 300;
 
-            var minExposure = _cameraService.ConnectedCamera.ExposureMin;
-            var maxExposure = _cameraService.ConnectedCamera.ExposureMax;
+            var minExposure = _cameraService.Camera.ExposureMin;
+            var maxExposure = _cameraService.Camera.ExposureMax;
 
             if (Double.IsInfinity(maxExposure) || Double.IsNaN(maxExposure))
                 maxExposure = scaleMax;
@@ -248,7 +248,7 @@ namespace DSImager.ViewModels
         /// </summary>
         private void ConstructBinningOptions()
         {
-            var cam = _cameraService.ConnectedCamera;
+            var cam = _cameraService.Camera;
             // For now assume we have equal X and Y binning. Otherwise assume no support.
             var maxBinning = cam.MaxBinX == cam.MaxBinY ? cam.MaxBinX : 1;
 
@@ -268,8 +268,8 @@ namespace DSImager.ViewModels
         /// <returns></returns>
         private double GetValidatedExposure(double val)
         {
-            var minExposure = _cameraService.ConnectedCamera.ExposureMin;
-            var maxExposure = _cameraService.ConnectedCamera.ExposureMax;
+            var minExposure = _cameraService.Camera.ExposureMin;
+            var maxExposure = _cameraService.Camera.ExposureMax;
 
             if (val < minExposure)
                 val = minExposure;
