@@ -16,5 +16,6 @@ namespace DSImager.Core.Interfaces
             string defaultFilename, string defaultExtension, string fileFilter, 
             out string filename);
 
+        bool ShowPickDirectoryDialog(string dialogTitle, string initialDirectory, out string directory);
     }
 }

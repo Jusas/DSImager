@@ -22,6 +22,8 @@ namespace DSImager.ViewModels
         private IImagingService _imagingService;
         private IStorageService _storageService;
         private IImageIoService _imageIoService;
+        private IDialogProvider _dialogProvider;
+        private ISystemEnvironment _systemEnvironment;
 
         private readonly string SessionFile = "saved-sessions.json";
 
@@ -152,13 +154,16 @@ namespace DSImager.ViewModels
         //-------------------------------------------------------------------------------------------------------
 
         public SessionDialogViewModel(ILogService logService, ICameraService cameraService,
-            IImagingService imagingService, IStorageService storageService, IImageIoService imageIoService)
+            IImagingService imagingService, IStorageService storageService, IImageIoService imageIoService,
+            IDialogProvider dialogProvider, ISystemEnvironment systemEnvironment)
             : base(logService)
         {
             _cameraService = cameraService;
             _imagingService = imagingService;
             _storageService = storageService;
             _imageIoService = imageIoService;
+            _dialogProvider = dialogProvider;
+            _systemEnvironment = systemEnvironment;
         }
 
         public override void Initialize()
@@ -284,7 +289,7 @@ namespace DSImager.ViewModels
         /// </summary>
         private void CreateNewSessionEntry()
         {
-            SavedSessions.Add(new ImagingSession());
+            SavedSessions.Add(new ImagingSession() { OutputDirectory = _systemEnvironment.UserPicturesDirectory ?? _systemEnvironment.UserHomeDirectory });
             SelectedSessionIndex = SavedSessions.Count - 1;
         }
 
@@ -373,6 +378,23 @@ namespace DSImager.ViewModels
             CloseDialog();
         }
 
+        /// <summary>
+        /// Select output directory from a directory dialog.
+        /// </summary>
+        private void SelectOutputDirectory()
+        {
+            // TODO: use persistent storage to store "previous selected directory/file/etc" entries for dialogs
+            string directory = _systemEnvironment.UserPicturesDirectory;
+            bool ok = _dialogProvider.ShowPickDirectoryDialog("Select output directory", _systemEnvironment.UserPicturesDirectory,
+                out directory);
+
+            if (ok && !string.IsNullOrEmpty(directory))
+            {
+                SelectedSession.OutputDirectory = directory;
+                SetNotifyingProperty(() => SelectedSession);
+            }
+        }
+
         #endregion
 
 
@@ -393,6 +415,8 @@ namespace DSImager.ViewModels
         public ICommand MoveSelectedSequenceEntryUpCommand { get { return new CommandHandler(MoveSelectedSequenceUp); } }
         public ICommand MoveSelectedSequenceEntryDownCommand { get { return new CommandHandler(MoveSelectedSequenceDown); } }
 
+        public ICommand SelectOutputDirectoryCommand { get { return new CommandHandler(SelectOutputDirectory); } }
+
 
         #endregion
 
@@ -400,7 +424,7 @@ namespace DSImager.ViewModels
 
     public class SessionDialogViewModelDT : SessionDialogViewModel
     {
-        public SessionDialogViewModelDT() : base(null, null, null, null, null)
+        public SessionDialogViewModelDT() : base(null, null, null, null, null, null, null)
         {
         }
     }

@@ -1,5 +1,7 @@
-﻿using DSImager.Core.Interfaces;
-using Microsoft.Win32;
+﻿using System;
+using System.Windows.Forms;
+using DSImager.Core.Interfaces;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace DSImager.Application.AppPlatform
 {
@@ -27,6 +29,25 @@ namespace DSImager.Application.AppPlatform
             }
 
             filename = null;
+            return false;
+        }
+
+        public bool ShowPickDirectoryDialog(string dialogTitle, string initialDirectory, out string directory)
+        {
+            var dialog = new FolderBrowserDialog();
+            dialog.RootFolder = Environment.SpecialFolder.MyComputer;
+            dialog.Description = dialogTitle;
+            dialog.SelectedPath = initialDirectory;
+            dialog.ShowNewFolderButton = true;
+
+            var result = dialog.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                directory = dialog.SelectedPath;
+                return true;
+            }
+
+            directory = null;
             return false;
         }
     }

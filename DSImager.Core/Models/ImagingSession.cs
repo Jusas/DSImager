@@ -25,6 +25,7 @@ namespace DSImager.Core.Models
         public bool PauseAfterEachSequence { get; set; }
         public int RepeatTimes { get; set; }
         public bool PauseAfterEachRepeat { get; set; }
+        public string OutputDirectory { get; set; }
         
         [JsonIgnore]
         public int CurrentRepeatIndex { get; set; }
@@ -53,6 +54,7 @@ namespace DSImager.Core.Models
             PauseAfterEachRepeat = false;
             CurrentRepeatIndex = 0;
             CurrentImageSequenceIndex = 0;
+            OutputDirectory = "";
             AreaRect = Rect.Full;
 
         }
@@ -83,7 +85,7 @@ namespace DSImager.Core.Models
 
             Regex r = new Regex("[^a-zA-Z0-9-]");
             var name = r.Replace(Name, "-");
-            return string.Format("{0}-{1}_{2}", name, DateTime.Now.ToString("yy-MM-dd-HHmmssffff"),
+            return string.Format("{0}-{1}_{2}", name, DateTime.Now.ToString("yy-MM-dd__HH-mm-ssffff"),
                 sequence.Extension);
         }
     }

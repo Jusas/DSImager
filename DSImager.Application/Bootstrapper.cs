@@ -49,7 +49,7 @@ namespace DSImager.Application
 
             var container = new Container();
 
-            container.Register<ISystemEnvironment, SystemEnvironment>();
+            container.Register<ISystemEnvironment, SystemEnvironment>(Lifestyle.Singleton);
             container.Register<IApplication, WpfApplication>(Lifestyle.Singleton);
             container.Register<IViewProvider, ViewProvider>(Lifestyle.Singleton);
             container.Register<IDialogProvider, DialogProvider>();

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using DSImager.Core.Interfaces;
 using DSImager.Core.System;
 using DSImager.Core.Models;
+using DSImager.Core.Utils;
 using nom.tam.fits;
 using nom.tam.util;
 
@@ -35,6 +36,7 @@ namespace DSImager.Core.Services
         private ICameraService _cameraService;
         private ILogService _logService;
         private IImageIoService _imageIoService;
+        private ISystemEnvironment _systemEnvironment;
 
         private ImagingSession _storedSession;
 
@@ -45,11 +47,12 @@ namespace DSImager.Core.Services
         public ExposureVisualSettings ExposureVisualProcessingSettings { get; set; }
 
         public ImagingService(ICameraService cameraService, ILogService logService,
-            IImageIoService ioService)
+            IImageIoService ioService, ISystemEnvironment systemEnvironment)
         {
             _cameraService = cameraService;
             _logService = logService;
             _imageIoService = ioService;
+            _systemEnvironment = systemEnvironment;
             ExposureVisualProcessingSettings = new ExposureVisualSettings()
             {
                 AutoStretch = true,
@@ -320,9 +323,30 @@ namespace DSImager.Core.Services
 
             // TODO path from configuration service
             var fname = CurrentImagingSession.GenerateFilename(CurrentImageSequence);
-            var path = Path.Combine(Environment.GetFolderPath(
-                    Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create), "DSImager");
-                var filename = Path.Combine(path, fname);
+            //var path = Path.Combine(Environment.GetFolderPath(
+            //        Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create), "DSImager");
+
+            var path = CurrentImagingSession.OutputDirectory;
+            if (string.IsNullOrEmpty(path))
+            {
+                if (!string.IsNullOrEmpty(_systemEnvironment.UserPicturesDirectory))
+                {
+                    path = Path.Combine(_systemEnvironment.UserPicturesDirectory,
+                        "DSImager-session-" + CurrentImagingSession.Name.ToFilenameString());
+                }
+                else
+                {
+                    path = Path.Combine(_systemEnvironment.UserHomeDirectory,
+                        "DSImager-session-" + CurrentImagingSession.Name.ToFilenameString());
+                }
+            }
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            
+            var filename = Path.Combine(path, fname);
             writer.Save(exposure, filename);
 
         }
@@ -348,8 +372,17 @@ namespace DSImager.Core.Services
             }
 
             if (CurrentImagingSession != null && CurrentImagingSession.SaveOutput)
-                SaveExposureToDisk(exposure, CurrentImageSequence.FileFormat);
-            
+            {
+                try
+                {
+                    SaveExposureToDisk(exposure, CurrentImageSequence.FileFormat);
+                }
+                catch (Exception e)
+                {
+                    _logService.LogMessage(new LogMessage(this, LogEventCategory.Error, "Unable to save exposure to disk! Exception raised: " + e.Message));
+                }
+            }
+
             if (OnImagingComplete != null)
                 OnImagingComplete(successful, exposure);
         }
