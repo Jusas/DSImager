@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -58,6 +59,10 @@ namespace DSImager.Tests.Services
             var imageIoService = MockImageIoService();
             var cameraService = MockCameraService();
             var logService = MockLogService();
+            var systemEnv = new Mock<ISystemEnvironment>();
+            systemEnv.SetupGet(x => x.UserPicturesDirectory).Returns(Path.GetTempPath());
+            systemEnv.SetupGet(x => x.UserHomeDirectory).Returns(Path.GetTempPath());
+            systemEnv.SetupGet(x => x.TemporaryFilesDirectory).Returns(Path.GetTempPath());
 
             cameraService.Setup(x => x.TakeExposure(It.IsAny<double>(), It.IsAny<bool>()))                
                 .ReturnsAsync(true)
@@ -68,7 +73,7 @@ namespace DSImager.Tests.Services
             writerMoq.Setup(x => x.Save(It.IsAny<Exposure>(), It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()));
             imageIoService.Setup(x => x.GetImageWriter(It.IsAny<ImageFileFormat>())).Returns(writerMoq.Object);
 
-            var imagingService = new ImagingService(cameraService.Object, logService.Object, imageIoService.Object);
+            var imagingService = new ImagingService(cameraService.Object, logService.Object, imageIoService.Object, systemEnv.Object);
             
             var session = new ImagingSession()
             {

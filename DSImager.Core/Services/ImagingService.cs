@@ -348,6 +348,7 @@ namespace DSImager.Core.Services
             
             var filename = Path.Combine(path, fname);
             writer.Save(exposure, filename);
+            _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "Exposure saved to disk: " + filename));
 
         }
 
@@ -375,7 +376,7 @@ namespace DSImager.Core.Services
             {
                 try
                 {
-                    SaveExposureToDisk(exposure, CurrentImageSequence.FileFormat);
+                    SaveExposureToDisk(exposure, CurrentImageSequence.FileFormat);                    
                 }
                 catch (Exception e)
                 {
