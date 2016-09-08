@@ -50,5 +50,11 @@ namespace DSImager.Application.AppPlatform
             directory = null;
             return false;
         }
+
+        public bool ShowOkDialog(string dialogTitle, string dialogText)
+        {
+            var result = MessageBox.Show(dialogText, dialogTitle, MessageBoxButtons.OK);
+            return true;
+        }
     }
 }

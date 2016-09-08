@@ -542,6 +542,7 @@ namespace DSImager.ViewModels
                 "Imaging session '" + session.Name + "' completed " + 
                 (completedSuccessfully ? "successfully" : "unsuccessfully") + 
                 (canceledByUser ? ", the session was canceled by user." : "") ));
+            _dialogProvider.ShowOkDialog("Session completed", "The imaging session has been completed!");
         }
 
         private void OnImagingSessionResumed(ImagingSession session)
