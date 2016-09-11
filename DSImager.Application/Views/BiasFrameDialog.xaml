@@ -1,0 +1,96 @@
+﻿<views:BaseView x:TypeArguments="viewModels:BiasFrameDialogViewModel" x:Class="DSImager.Application.Views.BiasFrameDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:DSImager.Application.Views"
+        xmlns:viewModels="clr-namespace:DSImager.ViewModels;assembly=DSImager.ViewModels"
+        xmlns:converters="clr-namespace:DSImager.Application.Converters"
+        mc:Ignorable="d"
+        Title="Take bias frames" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+        BorderBrush="Black" BorderThickness="1"
+        WindowStartupLocation="CenterScreen"
+        Height="233.051" Width="488.983" ResizeMode="NoResize">
+    <Window.Resources>
+        <converters:NotNullConverter x:Key="NotNullConverter"></converters:NotNullConverter>
+        <converters:StringDoubleConverter x:Key="StringDoubleConverter"></converters:StringDoubleConverter>
+        <converters:InvertBooleanConverter x:Key="InvertBooleanConverter"></converters:InvertBooleanConverter>
+        <converters:BoolMultiAndConverter x:Key="BoolMultiConverter"></converters:BoolMultiAndConverter>
+        <converters:ImageFileFormatStringConverter x:Key="ImageFileFormatStringConverter"></converters:ImageFileFormatStringConverter>
+    </Window.Resources>
+    <Grid d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type={x:Type viewModels:BiasFrameDialogViewModelDT}}" Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="36"></RowDefinition>
+            <RowDefinition Height="36"></RowDefinition>
+            <RowDefinition Height="48"></RowDefinition>
+            <RowDefinition Height="72"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="100"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Label Content="Output directory"></Label>
+            <TextBox Grid.Column="1" Margin="0,0,0,10" Text="{Binding Settings.SavePath, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+            <Button Grid.Column="2" Content="Browse..." Margin="10,0,0,10"
+                    Command="{Binding SelectOutputDirectoryCommand}"></Button>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"></ColumnDefinition>
+                <ColumnDefinition Width="90"></ColumnDefinition>
+                <ColumnDefinition Width="80"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Label Content="Number of frames"></Label>
+            <TextBox Grid.Column="1" Margin="0,0,0,10" Width="60" HorizontalAlignment="Left"
+                     Text="{Binding Settings.FrameCount, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+            <Label Grid.Column="2" Content="Binning"></Label>
+            <ComboBox Grid.Column="3" Margin="0,0,0,10" Width="90" HorizontalAlignment="Left"
+                      ItemsSource="{Binding BinningModeOptions}"
+                      SelectedItem="{Binding Settings.BinningModeXY}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding StringFormat={}{0}x{0}}"></TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Label Content="File format"></Label>
+            <ComboBox Grid.Column="1" VerticalAlignment="Top" Margin="0,0,0,10" Height="26" Width="120" HorizontalAlignment="Left" ItemsSource="{Binding FileTypeOptionIds}"
+                          SelectedItem="{Binding Settings.FileFormat}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{StaticResource ImageFileFormatStringConverter}">
+                                    <Binding />
+                                    <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Window}" Path="DataContext.FileTypeOptionNames"></Binding>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </Grid>
+        <Grid Grid.Row="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"></RowDefinition>
+                <RowDefinition Height="30"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Button Grid.Row="0" Margin="0,0,0,5" Content="Start"
+                    Command="{Binding StartCaptureCommand}"></Button>
+            <Button Grid.Row="1" Margin="0,0,0,5" Content="Cancel"
+                    Command="{Binding CancelCaptureCommand}"></Button>
+        </Grid>
+        
+    </Grid>
+</views:BaseView>
+
+    

@@ -18,6 +18,7 @@ namespace DSImager.Core.Services
         //-------------------------------------------------------------------------------------------------------
 
         private ILogService _logService;
+        private ISystemEnvironment _systemEnvironment;
         private string _rootPath;
 
         #endregion
@@ -26,10 +27,11 @@ namespace DSImager.Core.Services
         #region PUBLIC METHODS
         //-------------------------------------------------------------------------------------------------------
 
-        public StorageService(ILogService logService)
+        public StorageService(ILogService logService, ISystemEnvironment systemEnvironment)
         {
             _logService = logService;
-            _rootPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DSImager");
+            _systemEnvironment = systemEnvironment;
+            _rootPath = _systemEnvironment.ApplicationDataDirectory;
         }
 
         public void SetStorageRoot(string path)

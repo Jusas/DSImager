@@ -11,5 +11,6 @@ namespace DSImager.Core.Interfaces
         string TemporaryFilesDirectory { get; }
         string UserHomeDirectory { get; }
         string UserPicturesDirectory { get; }
+        string ApplicationDataDirectory { get; }
     }
 }

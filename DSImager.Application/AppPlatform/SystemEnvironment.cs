@@ -15,5 +15,7 @@ namespace DSImager.Application.AppPlatform
         public string UserHomeDirectory => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
         public string UserPicturesDirectory => Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+
+        public string ApplicationDataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DSImager");
     }
 }

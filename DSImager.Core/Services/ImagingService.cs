@@ -21,6 +21,7 @@ namespace DSImager.Core.Services
     {
 
         // TODO: is this supposed to be here? Images are taken in sessions, when are dark frames taken and shoud that setting be in the ImageSequence itself?
+        [Obsolete("Don't use")]
         public bool DarkFrameMode { get; set; }
         public bool IsSessionPaused { get; private set; }
 
@@ -179,7 +180,7 @@ namespace DSImager.Core.Services
                         bool result = false;
                         try
                         {
-                            result = await _cameraService.TakeExposure(sequence.ExposureDuration, DarkFrameMode);
+                            result = await _cameraService.TakeExposure(sequence.ExposureDuration, sequence.ExposureDuration == 0);
                             if (!result)
                             {
                                 _logService.LogMessage(new LogMessage(this, LogEventCategory.Error, 
@@ -320,12 +321,9 @@ namespace DSImager.Core.Services
                 throw new ArgumentException("File format '" + format + "' was invalid, no writer for that file format found.", "format");
 
             var writer = _imageIoService.GetImageWriter(ff);
-
-            // TODO path from configuration service
+            
             var fname = CurrentImagingSession.GenerateFilename(CurrentImageSequence);
-            //var path = Path.Combine(Environment.GetFolderPath(
-            //        Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create), "DSImager");
-
+            
             var path = CurrentImagingSession.OutputDirectory;
             if (string.IsNullOrEmpty(path))
             {

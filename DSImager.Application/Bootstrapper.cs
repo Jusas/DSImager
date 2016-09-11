@@ -50,6 +50,7 @@ namespace DSImager.Application
             var container = new Container();
 
             container.Register<ISystemEnvironment, SystemEnvironment>(Lifestyle.Singleton);
+            container.Register<IProgramSettingsManager, ProgramSettingsManager>(Lifestyle.Singleton);
             container.Register<IApplication, WpfApplication>(Lifestyle.Singleton);
             container.Register<IViewProvider, ViewProvider>(Lifestyle.Singleton);
             container.Register<IDialogProvider, DialogProvider>();
@@ -76,6 +77,7 @@ namespace DSImager.Application
             viewProvider.Register<HistogramDialog, HistogramDialogViewModel>();
             viewProvider.Register<SessionDialog, SessionDialogViewModel>();
             viewProvider.Register<TemperatureDialog, TemperatureDialogViewModel>();
+            viewProvider.Register<BiasFrameDialog, BiasFrameDialogViewModel>();
             
             var imageIoService = container.GetInstance<IImageIoService>();
             var fitsWriter = new FitsWriter();

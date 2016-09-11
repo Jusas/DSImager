@@ -227,12 +227,12 @@ namespace DSImager.Core.Services
         /// runs an exposure cycle and handles the different states and such.
         /// </summary>
         /// <param name="duration">The exposure duration, in seconds</param>
-        /// <param name="isDarkFrame">If the frame is a dark (calibration) frame, set to true</param>
+        /// <param name="isCalibrationFrame">If the frame is a calibration frame, set to true</param>
         /// <returns>
         /// Did exposuring succeed or fail. Note: upon stopping exposure, 
         /// the return value is true (exposure data is still saved). Upon aborting, the value is false.
         /// </returns>
-        public async Task<bool> TakeExposure(double duration, bool isDarkFrame = false)
+        public async Task<bool> TakeExposure(double duration, bool isCalibrationFrame = false)
         {
             _isExposuring = true;
 
@@ -257,8 +257,10 @@ namespace DSImager.Core.Services
             if (OnExposureStarted != null)
                 OnExposureStarted(duration);
 
-            Camera.StartExposure(duration, !isDarkFrame);
-
+            Camera.StartExposure(duration, !isCalibrationFrame);
+            
+            if (OnExposureProgressChanged != null)
+                OnExposureProgressChanged(0, duration, ExposurePhase.Exposuring);
 
             var startTime = DateTime.Now;
             TimeSpan currentDuration = TimeSpan.Zero;

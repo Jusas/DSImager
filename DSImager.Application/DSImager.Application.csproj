@@ -116,6 +116,9 @@
     <Compile Include="Utils\InvokeDelegateCommandAction.cs" />
     <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Views\BaseView.cs" />
+    <Compile Include="Views\BiasFrameDialog.xaml.cs">
+      <DependentUpon>BiasFrameDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ConnectDialog.xaml.cs">
       <DependentUpon>ConnectDialog.xaml</DependentUpon>
     </Compile>
@@ -166,6 +169,10 @@
     <Compile Include="Converters\TemperatureGraphPointListConverter.cs" />
     <Compile Include="Converters\VisibilityConverter.cs" />
     <Compile Include="Converters\XyListToPointCollectionConverter.cs" />
+    <Page Include="Views\BiasFrameDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\ConnectDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

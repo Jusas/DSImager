@@ -29,7 +29,8 @@ namespace DSImager.Tests.Services
         public void Init()
         {
             var moqLogService = new Mock<ILogService>();
-            _storageService = new StorageService(moqLogService.Object);
+            var moqSysEnv = new Mock<ISystemEnvironment>().SetupAllProperties();
+            _storageService = new StorageService(moqLogService.Object, moqSysEnv.Object);
         }
 
         [Test]

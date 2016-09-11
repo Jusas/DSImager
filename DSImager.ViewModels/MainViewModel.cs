@@ -109,6 +109,7 @@ namespace DSImager.ViewModels
         private IDialogProvider _dialogProvider;
         private ISystemEnvironment _systemEnvironment;
         private IImageIoService _imageIoService;
+        private IProgramSettingsManager _programSettingsManager;
 
         /// <summary>
         /// Reference to a connect dialog instance
@@ -134,6 +135,11 @@ namespace DSImager.ViewModels
         /// Reference to the temperature dialog instance
         /// </summary>
         private IView<TemperatureDialogViewModel> _temperatureDialog;
+
+        /// <summary>
+        /// Reference to the bias frame capture dialog instance
+        /// </summary>
+        private IView<BiasFrameDialogViewModel> _biasFrameDialog;
 
         private int _selectedPreviewExposureIndex = 0;
         /// <summary>
@@ -381,7 +387,7 @@ namespace DSImager.ViewModels
 
         public MainViewModel(ILogService logService, ICameraService cameraService, IImagingService imagingService, 
             IViewProvider viewProvider, IDialogProvider dialogProvider, ISystemEnvironment systemEnvironment, 
-            IImageIoService imageIoService, IApplication application)
+            IImageIoService imageIoService, IApplication application, IProgramSettingsManager programSettingsManager)
             : base(logService)
         {
             _cameraService = cameraService;
@@ -391,6 +397,7 @@ namespace DSImager.ViewModels
             _dialogProvider = dialogProvider;
             _systemEnvironment = systemEnvironment;
             _imageIoService = imageIoService;
+            _programSettingsManager = programSettingsManager;
             ViewTitle = "DSImager";
 
             LogMessages.CollectionChanged += (sender, args) =>
@@ -665,11 +672,20 @@ namespace DSImager.ViewModels
             }
         }
 
+        /// <summary>
+        /// Open the bias frame capture dialog.
+        /// </summary>
+        private void OpenBiasFrameDialog()
+        {
+            _biasFrameDialog = _viewProvider.Instantiate<BiasFrameDialogViewModel>();
+            _biasFrameDialog.ShowModal();
+        }
 
         // Event handlers
 
         private void OnViewLoaded(object sender, EventArgs eventArgs)
         {
+            _programSettingsManager.LoadSettings();
             _cameraService.OnCameraChosen += OnCameraChosen;
             _connectDialog = _viewProvider.Instantiate<ConnectDialogViewModel>();
             bool quit = !_connectDialog.ShowModal();
@@ -703,7 +719,7 @@ namespace DSImager.ViewModels
         private void OnExposureProgressChanged(double currentExposureDuration, double targetExposureDuration, ExposurePhase phase)
         {
             // Update the progress bar text and value.
-            CurrentExposureProgress = (int)Math.Min(100.0, (currentExposureDuration / targetExposureDuration * 100.0));
+            CurrentExposureProgress = targetExposureDuration == 0 ? 100 : (int)Math.Min(100.0, (currentExposureDuration / targetExposureDuration * 100.0));
             var exposureNum = _imagingService.CurrentImageSequence != null ? _imagingService.CurrentImageSequence.CurrentExposureIndex + 1 : 1;
             var totalExposures = _imagingService.CurrentImageSequence != null ? _imagingService.CurrentImageSequence.NumExposures : 1;
             double remainingExposureTime = _imagingService.CurrentImageSequence != null ? (totalExposures - exposureNum + 1) *
@@ -776,6 +792,7 @@ namespace DSImager.ViewModels
         public ICommand OpenSessionDialogCommand { get { return new CommandHandler(OpenSessionDialog); } }
         public ICommand OpenTemperatureDialogCommand { get { return new CommandHandler(OpenTemperatureDialog); } }
         public ICommand SaveVisibleFrameCommand { get { return new CommandHandler(SaveVisibleFrame); } }
+        public ICommand OpenBiasFrameDialogCommand { get { return new CommandHandler(OpenBiasFrameDialog); } }
 
         #endregion
     }
@@ -786,13 +803,10 @@ namespace DSImager.ViewModels
     /// </summary>
     public class MainViewModelDT : MainViewModel
     {
-        public MainViewModelDT() : base(null, null, null, null, null, null, null, null)
+        public MainViewModelDT() : base(null, null, null, null, null, null, null, null, null)
         {
             
         }
-        //public MainViewModelDT(ILogService logService, ICameraService cameraService, IImagingService imagingService, IViewProvider viewProvider, IApplication application) : base(logService, cameraService, imagingService, viewProvider, application)
-        //{
-        //}
     }
 }
 // http://stackoverflow.com/questions/7877532/wpf-event-binding-from-view-to-viewmodel

@@ -255,6 +255,20 @@
                     Command="{Binding OpenSessionDialogCommand}"
                         Visibility="{Binding IsInSession, Converter={StaticResource VisibilityConverter}, ConverterParameter=False}">
                     <fa:ImageAwesome Icon="Camera"></fa:ImageAwesome>
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource MultiBoolAndConverter}">
+                            <Binding Path="IsExposuring"></Binding>
+                            <Binding Path="IsInSession"></Binding>
+                            <Binding Path="IsSessionPaused"></Binding>
+                            <MultiBinding.ConverterParameter>
+                                <x:Array Type="system:Boolean">
+                                    <system:Boolean>False</system:Boolean>
+                                    <system:Boolean>False</system:Boolean>
+                                    <system:Boolean>False</system:Boolean>
+                                </x:Array>
+                            </MultiBinding.ConverterParameter>
+                        </MultiBinding>
+                    </Button.IsEnabled>
                 </Button>
                 <Button FontFamily="{DynamicResource FontAwesome}"
                     Width="30"
@@ -277,6 +291,120 @@
                         </MultiBinding>
                     </Button.IsEnabled>
                     <fa:ImageAwesome Icon="Pause"></fa:ImageAwesome>
+                </Button>
+            </ToolBar>
+            <ToolBar HorizontalAlignment="Left" FontSize="24">
+                <Label Content="Calibration" FontSize="14"/>
+                <Button FontFamily="{DynamicResource FontAwesome}" 
+					    Margin="4,0"
+					    ToolTip="Take dark frames..." Foreground="White"
+                        Command="{Binding OpenHistogramDialogCommand}"
+                        >
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <Canvas Width="30" Height="30">
+                                <fa:ImageAwesome Icon="Clone" Width="18" Height="18" Margin="6,2,0,0"></fa:ImageAwesome>
+                                <Label Content="DARK" FontSize="9" RenderTransformOrigin="0,0" Width="36"  HorizontalContentAlignment="Left">
+                                    <Label.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform/>
+                                            <SkewTransform/>
+                                            <RotateTransform/>
+                                            <TranslateTransform X="0" Y="17"/>
+                                        </TransformGroup>
+                                    </Label.RenderTransform>
+                                </Label>
+                            </Canvas>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource MultiBoolAndConverter}">
+                            <Binding Path="IsExposuring"></Binding>
+                            <Binding Path="IsInSession"></Binding>
+                            <Binding Path="IsSessionPaused"></Binding>
+                            <MultiBinding.ConverterParameter>
+                                <x:Array Type="system:Boolean">
+                                    <system:Boolean>False</system:Boolean>
+                                    <system:Boolean>False</system:Boolean>
+                                    <system:Boolean>False</system:Boolean>
+                                </x:Array>
+                            </MultiBinding.ConverterParameter>
+                        </MultiBinding>
+                    </Button.IsEnabled>
+                </Button>
+                <Button FontFamily="{DynamicResource FontAwesome}" 
+					    Margin="4,0"
+					    ToolTip="Take flat frames..." Foreground="White"
+                        Command="{Binding OpenHistogramDialogCommand}"
+                        >
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <Canvas Width="30" Height="30">
+                                <fa:ImageAwesome Icon="Clone" Width="18" Height="18" Margin="6,2,0,0"></fa:ImageAwesome>
+                                <Label Content="FLAT" FontSize="9" RenderTransformOrigin="0,0" Width="36"  HorizontalContentAlignment="Left">
+                                    <Label.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform/>
+                                            <SkewTransform/>
+                                            <RotateTransform/>
+                                            <TranslateTransform X="0" Y="17"/>
+                                        </TransformGroup>
+                                    </Label.RenderTransform>
+                                </Label>
+                            </Canvas>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource MultiBoolAndConverter}">
+                            <Binding Path="IsExposuring"></Binding>
+                            <Binding Path="IsInSession"></Binding>
+                            <Binding Path="IsSessionPaused"></Binding>
+                            <MultiBinding.ConverterParameter>
+                                <x:Array Type="system:Boolean">
+                                    <system:Boolean>False</system:Boolean>
+                                    <system:Boolean>False</system:Boolean>
+                                    <system:Boolean>False</system:Boolean>
+                                </x:Array>
+                            </MultiBinding.ConverterParameter>
+                        </MultiBinding>
+                    </Button.IsEnabled>
+                </Button>
+                <Button FontFamily="{DynamicResource FontAwesome}" 
+					    Margin="4,0"
+					    ToolTip="Take bias frames..." Foreground="White"
+                        Command="{Binding OpenBiasFrameDialogCommand}"
+                        >
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <Canvas Width="30" Height="30">
+                                <fa:ImageAwesome Icon="Clone" Width="18" Height="18" Margin="6,2,0,0"></fa:ImageAwesome>
+                                <Label Content="BIAS" FontSize="9" RenderTransformOrigin="0,0" Width="36"  HorizontalContentAlignment="Left">
+                                    <Label.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform/>
+                                            <SkewTransform/>
+                                            <RotateTransform/>
+                                            <TranslateTransform X="0" Y="17"/>
+                                        </TransformGroup>
+                                    </Label.RenderTransform>
+                                </Label>
+                            </Canvas>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                    <Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource MultiBoolAndConverter}">
+                            <Binding Path="IsExposuring"></Binding>
+                            <Binding Path="IsInSession"></Binding>
+                            <Binding Path="IsSessionPaused"></Binding>
+                            <MultiBinding.ConverterParameter>
+                                <x:Array Type="system:Boolean">
+                                    <system:Boolean>False</system:Boolean>
+                                    <system:Boolean>False</system:Boolean>
+                                    <system:Boolean>False</system:Boolean>
+                                </x:Array>
+                            </MultiBinding.ConverterParameter>
+                        </MultiBinding>
+                    </Button.IsEnabled>
                 </Button>
             </ToolBar>
         </ToolBarPanel>
