@@ -16,6 +16,22 @@ namespace DSImager.ViewModels
     public class DarkFrameDialogViewModel : BaseViewModel<DarkFrameDialogViewModel>
     {
         //-------------------------------------------------------------------------------------------------------
+        #region HELPER CLASSES
+        //-------------------------------------------------------------------------------------------------------
+
+        /// <summary>
+        /// A helper class for selecting image sequences in the grid control.
+        /// </summary>
+        public class SelectableImageSequence
+        {
+            public string FormattedName { get; set; }
+            public ImageSequence Sequence { get; set; }
+            public bool IsSelected { get; set; }
+        }
+
+        #endregion
+
+        //-------------------------------------------------------------------------------------------------------
         #region FIELDS AND PROPERTIES
         //-------------------------------------------------------------------------------------------------------
 
@@ -86,6 +102,70 @@ namespace DSImager.ViewModels
             }
         }
 
+
+        private List<SelectableImageSequence> _sourceImageSequences;
+        public List<SelectableImageSequence> SourceImageSequences
+        {
+            get
+            {
+                return _sourceImageSequences;
+            }
+            set
+            {
+                SetNotifyingProperty(() => SourceImageSequences, ref _sourceImageSequences, value);
+            }
+        }
+
+        private bool _isSelectingSourceSession;
+        public bool IsSelectingSourceSession
+        {
+            get
+            {
+                return _isSelectingSourceSession;
+            }
+            set
+            {
+                SetNotifyingProperty(() => IsSelectingSourceSession, ref _isSelectingSourceSession, value);
+            }
+        }
+
+        private ImagingSession _selectedSourceSession;
+        public ImagingSession SelectedSourceSession
+        {
+            get
+            {
+                return _selectedSourceSession;
+            }
+            set
+            {
+                SetNotifyingProperty(() => SelectedSourceSession, ref _selectedSourceSession, value);
+                SourceImageSequences = SelectedSourceSession != null
+                    ? SelectedSourceSession.ImageSequences.Select(s => new SelectableImageSequence
+                    {
+                        FormattedName = s.Name,
+                        IsSelected = s.Enabled,
+                        Sequence = s
+                    }).ToList()
+                    : new List<SelectableImageSequence>();
+            }
+        }
+
+        private List<ImagingSession> _sourceSessions;
+        public List<ImagingSession> SourceSessions
+        {
+            get
+            {
+                return _sourceSessions;
+            }
+            set
+            {
+                SetNotifyingProperty(() => SourceSessions, ref _sourceSessions, value);
+                SetNotifyingProperty(() => HasAvailableSessions);
+            }
+        }
+
+        public bool HasAvailableSessions => _sourceSessions != null && _sourceSessions.Count > 0;
+
         /*
         private double _selectedExposureTime;
         public double SelectedExposureTime
@@ -140,9 +220,22 @@ namespace DSImager.ViewModels
         private void OnViewLoaded(object sender, EventArgs eventArgs)
         {
             LoadSettings();
+            LoadSessionsFromDisk();
             ConstructRecentExposures();
             ConstructFileTypeOptions();
             ConstructBinningOptions();
+        }
+
+        private void LoadSessionsFromDisk()
+        {
+            try
+            {
+                SourceSessions = _storageService.Get<List<ImagingSession>>(SessionDialogViewModel.SessionFile); // TODO: move sessions file name declaration elsewhere? make a manager?
+            }
+            catch (Exception)
+            {
+                SourceSessions = new List<ImagingSession>();
+            }
         }
 
         private void LoadSettings()
@@ -202,6 +295,8 @@ namespace DSImager.ViewModels
         private void StartCapture()
         {
             // TODO actions
+            // TODO build a session from selected sequences, do not pause between sequences. take number of frames from textbox, etc.
+
             ImagingSession session = new ImagingSession()
             {
                 SaveOutput = true,
@@ -248,6 +343,17 @@ namespace DSImager.ViewModels
             }
         }
 
+        private void SelectSourceSession()
+        {
+            IsSelectingSourceSession = false;
+        }
+
+        private void StartSelectingSourceSession()
+        {
+            SelectedSourceSession = null;
+            IsSelectingSourceSession = true;
+        }
+
         #endregion
 
         //-------------------------------------------------------------------------------------------------------
@@ -257,6 +363,8 @@ namespace DSImager.ViewModels
         public ICommand StartCaptureCommand { get { return new CommandHandler(StartCapture); } }
         public ICommand CancelCaptureCommand { get { return new CommandHandler(CancelCapture); } }
         public ICommand SelectOutputDirectoryCommand { get { return new CommandHandler(SelectOutputDirectory); } }
+        public ICommand SelectSourceSessionCommand { get { return new CommandHandler(SelectSourceSession);} }
+        public ICommand StartSelectingSourceSessionCommand { get { return new CommandHandler(StartSelectingSourceSession);} }
 
         #endregion
     }
@@ -267,7 +375,19 @@ namespace DSImager.ViewModels
     {
         public DarkFrameDialogViewModelDT() : base(null, null, null, null, null, null, null, null)
         {
-
+            SourceImageSequences = new List<SelectableImageSequence>()
+            {
+                new SelectableImageSequence()
+                {
+                    FormattedName = "red (test session)",
+                    IsSelected = false,
+                    Sequence = new ImageSequence()
+                    {
+                        BinXY = 1,
+                        ExposureDuration = 60
+                    }
+                }
+            };
         }
     }
 }

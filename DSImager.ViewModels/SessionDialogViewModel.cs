@@ -25,7 +25,7 @@ namespace DSImager.ViewModels
         private IDialogProvider _dialogProvider;
         private ISystemEnvironment _systemEnvironment;
 
-        private readonly string SessionFile = "saved-sessions.json";
+        public const string SessionFile = "saved-sessions.json";
 
         private List<double> _presetExposureValues;
         public List<double> PresetExposureValues
