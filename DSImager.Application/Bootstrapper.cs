@@ -78,7 +78,8 @@ namespace DSImager.Application
             viewProvider.Register<SessionDialog, SessionDialogViewModel>();
             viewProvider.Register<TemperatureDialog, TemperatureDialogViewModel>();
             viewProvider.Register<BiasFrameDialog, BiasFrameDialogViewModel>();
-            
+            viewProvider.Register<DarkFrameDialog, DarkFrameDialogViewModel>();
+
             var imageIoService = container.GetInstance<IImageIoService>();
             var fitsWriter = new FitsWriter();
             imageIoService.RegisterImageWriter(fitsWriter.Format, fitsWriter);

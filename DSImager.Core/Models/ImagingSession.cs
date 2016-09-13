@@ -26,7 +26,11 @@ namespace DSImager.Core.Models
         public int RepeatTimes { get; set; }
         public bool PauseAfterEachRepeat { get; set; }
         public string OutputDirectory { get; set; }
-        
+
+        public const string Untitled = "untitled session";
+        public const string Calibration = "Calibration";
+
+
         [JsonIgnore]
         public int CurrentRepeatIndex { get; set; }
         [JsonIgnore]
@@ -48,7 +52,7 @@ namespace DSImager.Core.Models
 
         private void Init()
         {
-            Name = "untitled session";
+            Name = Untitled;
             PauseAfterEachSequence = false;
             RepeatTimes = 1;
             PauseAfterEachRepeat = false;

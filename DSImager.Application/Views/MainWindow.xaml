@@ -298,7 +298,7 @@
                 <Button FontFamily="{DynamicResource FontAwesome}" 
 					    Margin="4,0"
 					    ToolTip="Take dark frames..." Foreground="White"
-                        Command="{Binding OpenHistogramDialogCommand}"
+                        Command="{Binding OpenDarkFrameDialogCommand}"
                         >
                     <Button.ContentTemplate>
                         <DataTemplate>

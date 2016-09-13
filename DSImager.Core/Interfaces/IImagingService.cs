@@ -38,5 +38,7 @@ namespace DSImager.Core.Interfaces
         Task ResumeStoredImagingOperation();
         void CancelStoredImagingOperation();
         void CancelCurrentImagingOperation();
+
+        IList<ImagingSession> SessionHistory { get; }
     }
 }

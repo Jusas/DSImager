@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using DSImager.ViewModels;
 
 namespace DSImager.Application.Views
@@ -16,6 +17,31 @@ namespace DSImager.Application.Views
         {            
             InitializeComponent();
             ViewModel = viewModel;
+
+            // TODO: Implement these in a proper way. Hotkeys are great.
+            RoutedCommand rc = new RoutedCommand();
+            rc.InputGestures.Add(new KeyGesture(Key.Space, ModifierKeys.None));            
+            CommandBindings.Add(new CommandBinding(rc, (sender, args) => viewModel.PreviewExposureCommand.Execute(null)));
+
+            rc = new RoutedCommand();
+            rc.InputGestures.Add(new KeyGesture(Key.D1, ModifierKeys.Control));
+            CommandBindings.Add(new CommandBinding(rc, (sender, args) => viewModel.SelectedPreviewExposureIndex = 3));
+
+            rc = new RoutedCommand();
+            rc.InputGestures.Add(new KeyGesture(Key.D2, ModifierKeys.Control));
+            CommandBindings.Add(new CommandBinding(rc, (sender, args) => viewModel.SelectedPreviewExposureIndex = 4));
+
+            rc = new RoutedCommand();
+            rc.InputGestures.Add(new KeyGesture(Key.D3, ModifierKeys.Control));
+            CommandBindings.Add(new CommandBinding(rc, (sender, args) => viewModel.SelectedPreviewExposureIndex = 5));
+
+            rc = new RoutedCommand();
+            rc.InputGestures.Add(new KeyGesture(Key.D4, ModifierKeys.Control));
+            CommandBindings.Add(new CommandBinding(rc, (sender, args) => viewModel.SelectedPreviewExposureIndex = 6));
+
+            rc = new RoutedCommand();
+            rc.InputGestures.Add(new KeyGesture(Key.D5, ModifierKeys.Control));
+            CommandBindings.Add(new CommandBinding(rc, (sender, args) => viewModel.SelectedPreviewExposureIndex = 7));
         }
 
 

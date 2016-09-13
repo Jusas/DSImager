@@ -64,6 +64,7 @@
     <Compile Include="BiasFrameDialogViewModel.cs" />
     <Compile Include="CommandHandler.cs" />
     <Compile Include="ConnectDialogViewModel.cs" />
+    <Compile Include="DarkFrameDialogViewModel.cs" />
     <Compile Include="DeviceInfoViewModel.cs" />
     <Compile Include="HistogramDialogViewModel.cs" />
     <Compile Include="MainViewModel.cs" />

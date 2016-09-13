@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -11,7 +13,7 @@ using Newtonsoft.Json.Linq;
 
 namespace DSImager.ViewModels
 {
-    public class BiasFrameDialogViewModel : BaseViewModel<BiasFrameDialogViewModel>
+    public class DarkFrameDialogViewModel : BaseViewModel<DarkFrameDialogViewModel>
     {
         //-------------------------------------------------------------------------------------------------------
         #region FIELDS AND PROPERTIES
@@ -44,7 +46,7 @@ namespace DSImager.ViewModels
                 SetNotifyingProperty(() => FileTypeOptionNames, ref _fileTypeOptionNames, value);
             }
         }
-        
+
 
         private ProgramSettings.BiasFrameDialogSettings _settings;
         public ProgramSettings.BiasFrameDialogSettings Settings
@@ -55,7 +57,7 @@ namespace DSImager.ViewModels
                 SetNotifyingProperty(() => Settings, ref _settings, value);
             }
         }
-        
+
         private List<int> _binningModeOptions;
         /// <summary>
         /// Different binning modes available for the connected camera.
@@ -69,15 +71,31 @@ namespace DSImager.ViewModels
             }
         }
 
+        public Dictionary<double, string> RecentExposureSequenceTimesToNames { get; private set; }
+
+        private List<double> _recentExposureTimes = new List<double>();
+        public List<double> RecentExposureTimes
+        {
+            get
+            {
+                return _recentExposureTimes;
+            }
+            set
+            {
+                SetNotifyingProperty(() => RecentExposureTimes, ref _recentExposureTimes, value);
+            }
+        }
+        
+
         #endregion
 
         //-------------------------------------------------------------------------------------------------------
         #region PUBLIC METHODS
         //-------------------------------------------------------------------------------------------------------
 
-        public BiasFrameDialogViewModel(ILogService logService,ICameraService cameraService,
+        public DarkFrameDialogViewModel(ILogService logService, ICameraService cameraService,
             IImagingService imagingService, IStorageService storageService, IImageIoService imageIoService,
-            IDialogProvider dialogProvider, ISystemEnvironment systemEnvironment, 
+            IDialogProvider dialogProvider, ISystemEnvironment systemEnvironment,
             IProgramSettingsManager programSettingsManager) : base(logService)
         {
             _cameraService = cameraService;
@@ -100,7 +118,7 @@ namespace DSImager.ViewModels
         //-------------------------------------------------------------------------------------------------------
         #region PRIVATE METHODS
         //-------------------------------------------------------------------------------------------------------
-        
+
         private void OnViewClosing(object sender, CancelEventArgs cancelEventArgs)
         {
             SaveSettings();
@@ -109,6 +127,7 @@ namespace DSImager.ViewModels
         private void OnViewLoaded(object sender, EventArgs eventArgs)
         {
             LoadSettings();
+            ConstructRecentExposures();
             ConstructFileTypeOptions();
             ConstructBinningOptions();
         }
@@ -117,10 +136,33 @@ namespace DSImager.ViewModels
         {
             Settings = _programSettingsManager.Settings.BiasFrameDialog;
         }
-
+        
         private void SaveSettings()
         {
             _programSettingsManager.SaveSettings();
+        }
+
+        private void ConstructRecentExposures()
+        {
+            var times = new List<double>();
+            RecentExposureSequenceTimesToNames = new Dictionary<double, string>();
+
+            var validSessions = _imagingService.SessionHistory.Where(
+                s => s.Name != ImagingSession.Untitled && s.Name != ImagingSession.Calibration).ToArray();
+            var imageSequences = validSessions.SelectMany(s => s.ImageSequences).ToArray();
+            var durationGroups = imageSequences.GroupBy(s => s.ExposureDuration).ToArray();
+
+            foreach (var item in durationGroups)
+            {
+                var seqNames = item.Select(s => s.Name);
+                var text = string.Join(", ", seqNames);
+                RecentExposureTimes.Add(item.Key);
+                RecentExposureSequenceTimesToNames.Add(item.Key, $"{item.Key:F}s - {text}");
+            }
+
+            RecentExposureSequenceTimesToNames.Add(360, "red, blue");
+            times.Add(360);
+            RecentExposureTimes = times;
         }
 
         private void ConstructBinningOptions()
@@ -155,7 +197,7 @@ namespace DSImager.ViewModels
                 OutputDirectory = Settings.SavePath,
                 Name = ImagingSession.Calibration
             };
-            
+
             ImageSequence sequence = new ImageSequence()
             {
                 Name = "Calibration",
@@ -210,11 +252,11 @@ namespace DSImager.ViewModels
 
 
     // ReSharper disable once InconsistentNaming
-    public class BiasFrameDialogViewModelDT : BiasFrameDialogViewModel
+    public class DarkFrameDialogViewModelDT : DarkFrameDialogViewModel
     {
-        public BiasFrameDialogViewModelDT() : base(null, null, null, null, null, null, null, null)
+        public DarkFrameDialogViewModelDT() : base(null, null, null, null, null, null, null, null)
         {
-            
+
         }
     }
 }

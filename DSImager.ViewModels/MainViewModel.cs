@@ -141,6 +141,12 @@ namespace DSImager.ViewModels
         /// </summary>
         private IView<BiasFrameDialogViewModel> _biasFrameDialog;
 
+        /// <summary>
+        /// Reference to the dark frame capture dialog instance
+        /// </summary>
+        private IView<DarkFrameDialogViewModel> _darkFrameDialog;
+
+
         private int _selectedPreviewExposureIndex = 0;
         /// <summary>
         /// The index of the selected preview exposure option - corresponds to
@@ -681,6 +687,15 @@ namespace DSImager.ViewModels
             _biasFrameDialog.ShowModal();
         }
 
+        private void OpenDarkFrameDialog()
+        {
+            _darkFrameDialog = _viewProvider.Instantiate<DarkFrameDialogViewModel>();
+            _darkFrameDialog.ShowModal();
+        }
+
+
+
+
         // Event handlers
 
         private void OnViewLoaded(object sender, EventArgs eventArgs)
@@ -793,6 +808,7 @@ namespace DSImager.ViewModels
         public ICommand OpenTemperatureDialogCommand { get { return new CommandHandler(OpenTemperatureDialog); } }
         public ICommand SaveVisibleFrameCommand { get { return new CommandHandler(SaveVisibleFrame); } }
         public ICommand OpenBiasFrameDialogCommand { get { return new CommandHandler(OpenBiasFrameDialog); } }
+        public ICommand OpenDarkFrameDialogCommand { get { return new CommandHandler(OpenDarkFrameDialog); } }
 
         #endregion
     }

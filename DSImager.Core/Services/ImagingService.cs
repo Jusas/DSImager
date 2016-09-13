@@ -47,6 +47,9 @@ namespace DSImager.Core.Services
 
         public ExposureVisualSettings ExposureVisualProcessingSettings { get; set; }
 
+        private List<ImagingSession> _sessionHistory = new List<ImagingSession>();
+        public IList<ImagingSession> SessionHistory { get { return _sessionHistory; } }
+
         public ImagingService(ICameraService cameraService, ILogService logService,
             IImageIoService ioService, ISystemEnvironment systemEnvironment)
         {
@@ -140,6 +143,7 @@ namespace DSImager.Core.Services
 
             _cameraService.OnExposureCompleted += OnExposureCompleted;
             CurrentImagingSession = session;
+            SessionHistory.Add(session);
 
             if (OnImagingSessionStarted != null)
                 OnImagingSessionStarted(session);
