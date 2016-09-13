@@ -19,6 +19,7 @@
         <converters:BoolMultiAndConverter x:Key="BoolMultiConverter"></converters:BoolMultiAndConverter>
         <converters:ImageFileFormatStringConverter x:Key="ImageFileFormatStringConverter"></converters:ImageFileFormatStringConverter>
         <converters:RecentExposureTimeToSequenceNamesConverter x:Key="RecentExposureTimeToSequenceNamesConverter"></converters:RecentExposureTimeToSequenceNamesConverter>
+        <BindingGroup x:Key="DummyBindingGroup"></BindingGroup>
     </Window.Resources>
     <Grid d:DataContext="{d:DesignInstance IsDesignTimeCreatable=True, Type={x:Type viewModels:DarkFrameDialogViewModelDT}}" Margin="10">
         <Grid.RowDefinitions>
@@ -59,7 +60,7 @@
             <Label Grid.Column="2" Content="Binning"></Label>
             <ComboBox Grid.Column="3" Margin="0,0,0,10" Width="90" HorizontalAlignment="Left"
                       ItemsSource="{Binding BinningModeOptions}"
-                      SelectedItem="{Binding Settings.BinningModeXY}">
+                      SelectedItem="{Binding Settings.BinningModeXY}"> <!-- TODO add defaults and get binning values from previous sessions -->
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding StringFormat={}{0}x{0}}"></TextBlock>
@@ -92,7 +93,7 @@
             </ComboBox>
             <Label Grid.Column="2" Content="Exposure (s)"></Label>
             <ComboBox Grid.Column="3" Height="26" VerticalAlignment="Top" Width="90" HorizontalAlignment="Left" IsEditable="True"
-                      ItemsSource="{Binding RecentExposureTimes, UpdateSourceTrigger=PropertyChanged}"><!-- todo need to show exposure time / recent session and/or sequence name in the combo items -->
+                      ItemsSource="{Binding RecentExposureTimes, UpdateSourceTrigger=PropertyChanged}" Text="{Binding Settings.ExposureTime}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock>

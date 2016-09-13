@@ -48,8 +48,8 @@ namespace DSImager.ViewModels
         }
 
 
-        private ProgramSettings.BiasFrameDialogSettings _settings;
-        public ProgramSettings.BiasFrameDialogSettings Settings
+        private ProgramSettings.DarkFrameDialogSettings _settings;
+        public ProgramSettings.DarkFrameDialogSettings Settings
         {
             get { return _settings; }
             set
@@ -85,7 +85,20 @@ namespace DSImager.ViewModels
                 SetNotifyingProperty(() => RecentExposureTimes, ref _recentExposureTimes, value);
             }
         }
-        
+
+        /*
+        private double _selectedExposureTime;
+        public double SelectedExposureTime
+        {
+            get
+            {
+                return _selectedExposureTime;
+            }
+            set
+            {
+                SetNotifyingProperty(() => SelectedExposureTime, ref _selectedExposureTime, value);
+            }
+        }*/
 
         #endregion
 
@@ -134,7 +147,7 @@ namespace DSImager.ViewModels
 
         private void LoadSettings()
         {
-            Settings = _programSettingsManager.Settings.BiasFrameDialog;
+            Settings = _programSettingsManager.Settings.DarkFrameDialog;
         }
         
         private void SaveSettings()
@@ -148,7 +161,7 @@ namespace DSImager.ViewModels
             RecentExposureSequenceTimesToNames = new Dictionary<double, string>();
 
             var validSessions = _imagingService.SessionHistory.Where(
-                s => s.Name != ImagingSession.Untitled && s.Name != ImagingSession.Calibration).ToArray();
+                s => s.Name != ImagingSession.Untitled && s.Name != ImagingSession.Calibration).ToArray().Reverse().ToArray();
             var imageSequences = validSessions.SelectMany(s => s.ImageSequences).ToArray();
             var durationGroups = imageSequences.GroupBy(s => s.ExposureDuration).ToArray();
 
@@ -159,9 +172,7 @@ namespace DSImager.ViewModels
                 RecentExposureTimes.Add(item.Key);
                 RecentExposureSequenceTimesToNames.Add(item.Key, $"{item.Key:F}s - {text}");
             }
-
-            RecentExposureSequenceTimesToNames.Add(360, "red, blue");
-            times.Add(360);
+            
             RecentExposureTimes = times;
         }
 
@@ -200,10 +211,10 @@ namespace DSImager.ViewModels
 
             ImageSequence sequence = new ImageSequence()
             {
-                Name = "Calibration",
+                Name = ImagingSession.Calibration,
                 BinXY = Settings.BinningModeXY,
-                Extension = "Bias",
-                ExposureDuration = 0, // Zero should be acceptable for bias frames (== minimum exposure value) in ASCOM standard
+                Extension = "Dark",
+                ExposureDuration = Settings.ExposureTime, // Zero should be acceptable for bias frames (== minimum exposure value) in ASCOM standard
                 FileFormat = Settings.FileFormat,
                 NumExposures = Settings.FrameCount,
             };
