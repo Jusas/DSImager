@@ -384,8 +384,8 @@ namespace DSImager.ViewModels
         private void SelectOutputDirectory()
         {
             // TODO: use persistent storage to store "previous selected directory/file/etc" entries for dialogs
-            string directory = _systemEnvironment.UserPicturesDirectory;
-            bool ok = _dialogProvider.ShowPickDirectoryDialog("Select output directory", _systemEnvironment.UserPicturesDirectory,
+            string directory = !string.IsNullOrEmpty(SelectedSession.OutputDirectory) ? SelectedSession.OutputDirectory : _systemEnvironment.UserPicturesDirectory;
+            bool ok = _dialogProvider.ShowPickDirectoryDialog("Select output directory", directory,
                 out directory);
 
             if (ok && !string.IsNullOrEmpty(directory))

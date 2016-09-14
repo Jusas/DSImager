@@ -160,7 +160,7 @@ namespace DSImager.ViewModels
             {
                 Name = "Calibration",
                 BinXY = Settings.BinningModeXY,
-                Extension = "Bias",
+                Extension = "_Bias",
                 ExposureDuration = 0, // Zero should be acceptable for bias frames (== minimum exposure value) in ASCOM standard
                 FileFormat = Settings.FileFormat,
                 NumExposures = Settings.FrameCount,

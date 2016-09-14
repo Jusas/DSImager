@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using DSImager.Core.Interfaces;
 using DSImager.Core.Models;
+using DSImager.Core.Utils;
 using Newtonsoft.Json.Linq;
 
 namespace DSImager.ViewModels
@@ -198,6 +199,8 @@ namespace DSImager.ViewModels
             _dialogProvider = dialogProvider;
             _systemEnvironment = systemEnvironment;
             _programSettingsManager = programSettingsManager;
+
+            _settings = new ProgramSettings.DarkFrameDialogSettings();
         }
 
         public override void Initialize()
@@ -294,27 +297,46 @@ namespace DSImager.ViewModels
 
         private void StartCapture()
         {
-            // TODO actions
-            // TODO build a session from selected sequences, do not pause between sequences. take number of frames from textbox, etc.
 
             ImagingSession session = new ImagingSession()
             {
                 SaveOutput = true,
-                OutputDirectory = Settings.SavePath,
                 Name = ImagingSession.Calibration
             };
 
-            ImageSequence sequence = new ImageSequence()
+            if (SelectedSourceSession == null)
             {
-                Name = ImagingSession.Calibration,
-                BinXY = Settings.BinningModeXY,
-                Extension = "Dark",
-                ExposureDuration = Settings.ExposureTime, // Zero should be acceptable for bias frames (== minimum exposure value) in ASCOM standard
-                FileFormat = Settings.FileFormat,
-                NumExposures = Settings.FrameCount,
-            };
-            session.ImageSequences.Add(sequence);
-
+                session.OutputDirectory = Settings.SavePath;
+                ImageSequence sequence = new ImageSequence()
+                {
+                    Name = ImagingSession.Calibration,
+                    BinXY = Settings.BinningModeXY,
+                    Extension = "Dark",
+                    ExposureDuration = Settings.ExposureTime,
+                    FileFormat = Settings.FileFormat,
+                    NumExposures = Settings.FrameCount
+                };
+                session.ImageSequences.Add(sequence);
+            }
+            else
+            {
+                session.OutputDirectory = Settings.SavePath;
+                session.PauseAfterEachSequence = false;
+                session.RepeatTimes = 1;
+                foreach (var s in SourceImageSequences)
+                {
+                    if (s.IsSelected)
+                    {
+                        var sequence = s.Sequence.Clone();
+                        sequence.Name = ImagingSession.Calibration;
+                        sequence.Enabled = true;
+                        sequence.Extension = SelectedSourceSession.Name.ToFilenameString() + "__" + s.Sequence.Name.ToFilenameString() + "__Dark";
+                        sequence.NumExposures = Settings.FrameCount;
+                        session.ImageSequences.Add(sequence);
+                    }
+                }
+            }
+            
             _imagingService.RunImagingSession(session);
 
             OwnerView.DialogResult = true;
@@ -354,6 +376,13 @@ namespace DSImager.ViewModels
             IsSelectingSourceSession = true;
         }
 
+        private void ResetSourceSession()
+        {
+            SelectedSourceSession = null;
+            IsSelectingSourceSession = false;
+        }
+
+
         #endregion
 
         //-------------------------------------------------------------------------------------------------------
@@ -365,6 +394,7 @@ namespace DSImager.ViewModels
         public ICommand SelectOutputDirectoryCommand { get { return new CommandHandler(SelectOutputDirectory); } }
         public ICommand SelectSourceSessionCommand { get { return new CommandHandler(SelectSourceSession);} }
         public ICommand StartSelectingSourceSessionCommand { get { return new CommandHandler(StartSelectingSourceSession);} }
+        public ICommand ResetSourceSessionCommand { get { return new CommandHandler(ResetSourceSession); } }
 
         #endregion
     }

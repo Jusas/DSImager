@@ -42,6 +42,10 @@ namespace DSImager.Application
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
+            // Setup Quick Converter.
+            QuickConverter.EquationTokenizer.AddNamespace(typeof(object));
+            QuickConverter.EquationTokenizer.AddNamespace(typeof(System.Windows.Visibility));
+
             _application.Exit += ApplicationOnExit;
             _application.Startup += ApplicationOnStartup;   
         }

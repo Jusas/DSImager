@@ -8,6 +8,7 @@
         xmlns:viewModels="clr-namespace:DSImager.ViewModels;assembly=DSImager.ViewModels"
         xmlns:converters="clr-namespace:DSImager.Application.Converters"
         xmlns:Models="clr-namespace:DSImager.Core.Models;assembly=DSImager.Core"
+        xmlns:qc="http://QuickConverter.CodePlex.com/"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         x:TypeArguments="viewModels:DarkFrameDialogViewModel" x:Class="DSImager.Application.Views.DarkFrameDialog"
@@ -105,7 +106,7 @@
                     <DataGridTemplateColumn IsReadOnly="True" Header="Sequence">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox Margin="10,0,10,0" Content="{Binding FormattedName}" IsChecked="{Binding IsSelected}"/>
+                                <CheckBox Margin="10,0,10,0" Content="{Binding FormattedName}" IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -127,7 +128,13 @@
             </DataGrid>
 
         </StackPanel>
-        <RadioButton Content="Use manual parameters" GroupName="SettingsMode" x:Name="RbSettingsManual"/>
+        <RadioButton Content="Use manual parameters" GroupName="SettingsMode" x:Name="RbSettingsManual">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="Checked">
+                    <i:InvokeCommandAction Command="{Binding ResetSourceSessionCommand}"></i:InvokeCommandAction>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </RadioButton>
         <StackPanel IsEnabled="{Binding IsChecked, ElementName=RbSettingsManual}">
             <Grid Margin="0,10,0,10">
                 <Grid.RowDefinitions>
@@ -220,7 +227,13 @@
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
             <Button Grid.Row="0" Margin="0,0,0,5" Content="Start"
-				Command="{Binding StartCaptureCommand}"/>
+				Command="{Binding StartCaptureCommand}">
+                <Button.IsEnabled >
+                    <qc:MultiBinding P0="{Binding SelectedSourceSession}" P1="{Binding Settings.SavePath}" P2="{Binding Settings.FileFormat}" P3="{Binding Settings.ExposureTime}" P4="{Binding Settings.FrameCount}" P5="{Binding ElementName=RbSettingsFromSession, Path=IsChecked}"
+                                     Converter="($P4 > 0 ## !string.IsNullOrEmpty($P1)) ## (($P0 != null) || (!$P5 ## $P0 == null ## $P3 > 0 ## !string.IsNullOrEmpty($P2)))"></qc:MultiBinding>
+                    <!-- ($P4 > 0 ## !string.IsNullOrEmpty($P1)) ## ((P0 != null) || ($P0 == null ## $P3 > 0 ## !string.IsNullOrEmpty($P2))) -->
+                </Button.IsEnabled>
+            </Button>
             <Button Grid.Row="1" Margin="0,0,0,5" Content="Cancel"
 				Command="{Binding CancelCaptureCommand}"/>
         </Grid>
