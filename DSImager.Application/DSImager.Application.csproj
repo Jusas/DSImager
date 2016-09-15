@@ -110,6 +110,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AppPlatform\AppVisualThemeManager.cs" />
     <Compile Include="AppPlatform\SystemEnvironment.cs" />
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="CommandHandler.cs" />
@@ -121,6 +122,9 @@
     <Compile Include="Utils\InvokeDelegateCommandAction.cs" />
     <Compile Include="Utils\ListExtensions.cs" />
     <Compile Include="Views\BaseView.cs" />
+    <Compile Include="Views\FlatFrameDialog.xaml.cs">
+      <DependentUpon>FlatFrameDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\BiasFrameDialog.xaml.cs">
       <DependentUpon>BiasFrameDialog.xaml</DependentUpon>
     </Compile>
@@ -177,6 +181,18 @@
     <Compile Include="Converters\TemperatureGraphPointListConverter.cs" />
     <Compile Include="Converters\VisibilityConverter.cs" />
     <Compile Include="Converters\XyListToPointCollectionConverter.cs" />
+    <Page Include="Themes\WhiteAccent.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\WhiteTheme.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\FlatFrameDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Views\BiasFrameDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

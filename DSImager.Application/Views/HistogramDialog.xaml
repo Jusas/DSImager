@@ -13,7 +13,8 @@
         Title="Histogram" Height="220" Width="440"
                 Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" 
                 BorderThickness="1" BorderBrush="Black"
-                WindowStartupLocation="CenterScreen">
+                WindowStartupLocation="CenterScreen"
+                Topmost="True">
     <Window.Resources>
         <converters:XyListToPointCollectionConverter x:Key="XyListToPointCollectionConverter"></converters:XyListToPointCollectionConverter>
         <converters:BooleanInverter x:Key="BooleanInverter"></converters:BooleanInverter>

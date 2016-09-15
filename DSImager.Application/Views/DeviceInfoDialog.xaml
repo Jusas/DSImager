@@ -5,7 +5,7 @@
         xmlns:viewModels="clr-namespace:DSImager.ViewModels;assembly=DSImager.ViewModels"
         xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
         Title="Camera Information" Height="347" Width="563" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" 
-                BorderThickness="1" BorderBrush="Black"
+                BorderThickness="1" BorderBrush="Black" Topmost="True"
                 WindowStartupLocation="CenterScreen">
     <controls:MetroWindow.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>

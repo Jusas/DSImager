@@ -28,13 +28,26 @@ namespace DSImager.Core.Models
             public string FileFormat { get; set; }
         }
 
+        public class FlatFrameDialogSettings
+        {
+            public string SavePath { get; set; }
+            public int BinningModeXY { get; set; }
+            public int FrameCount { get; set; }
+            public double ExposureTime { get; set; }
+            public string FileFormat { get; set; }
+            public int TargetADU { get; set; }
+            public int MaxExposureToTry { get; set; }
+        }
+
         public BiasFrameDialogSettings BiasFrameDialog { get; set; }
         public DarkFrameDialogSettings DarkFrameDialog { get; set; }
+        public FlatFrameDialogSettings FlatFrameDialog { get; set; }
 
         public ProgramSettings()
         {
             BiasFrameDialog = new BiasFrameDialogSettings();
             DarkFrameDialog = new DarkFrameDialogSettings();
+            FlatFrameDialog = new FlatFrameDialogSettings();
         }
 
     }

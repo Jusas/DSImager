@@ -10,7 +10,8 @@
         xmlns:fa="http://schemas.fontawesome.io/icons/"
         xmlns:converters="clr-namespace:DSImager.Application.Converters"
         mc:Ignorable="d"
-        Title="Camera Temperature" Height="356.242" Width="434.951" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderBrush="Black">
+        Title="Camera Temperature" Height="356.242" Width="434.951" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderBrush="Black"
+                Topmost="True">
     <Window.Resources>
         <converters:VisibilityConverter x:Key="VisibilityConverter"></converters:VisibilityConverter>
         <converters:InvertBooleanConverter x:Key="InvertBooleanConverter"></converters:InvertBooleanConverter>

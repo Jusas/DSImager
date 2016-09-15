@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Markup;
 using DSImager.Core.Interfaces;
+using MahApps.Metro;
 
 namespace DSImager
 {
@@ -22,6 +23,7 @@ namespace DSImager
             // Assigning our custom Culture to the application.
             System.Threading.Thread.CurrentThread.CurrentCulture = cultureInfo;
             System.Threading.Thread.CurrentThread.CurrentUICulture = cultureInfo;
+
 
             FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement),
             new FrameworkPropertyMetadata(System.Windows.Markup.XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));

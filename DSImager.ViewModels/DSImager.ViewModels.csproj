@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseViewModel.cs" />
+    <Compile Include="FlatFrameDialogViewModel.cs" />
     <Compile Include="BiasFrameDialogViewModel.cs" />
     <Compile Include="CommandHandler.cs" />
     <Compile Include="ConnectDialogViewModel.cs" />

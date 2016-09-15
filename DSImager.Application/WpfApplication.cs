@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using DSImager.Application.Views;
 using DSImager.Core.Interfaces;
+using MahApps.Metro;
 
 namespace DSImager.Application
 {

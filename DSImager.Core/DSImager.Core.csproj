@@ -109,6 +109,7 @@
     <Compile Include="Interfaces\IProgramSettingsManager.cs" />
     <Compile Include="Interfaces\IStorageService.cs" />
     <Compile Include="Interfaces\ISystemEnvironment.cs" />
+    <Compile Include="Interfaces\IAppVisualThemeManager.cs" />
     <Compile Include="Interfaces\IView.cs" />
     <Compile Include="Interfaces\IViewModel.cs" />
     <Compile Include="Interfaces\IViewProvider.cs" />

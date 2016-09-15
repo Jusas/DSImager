@@ -13,7 +13,7 @@
             </ResourceDictionary.MergedDictionaries>
             <FontFamily x:Key="FontAwesome">/Resources/Font/#FontAwesome</FontFamily>
             <Style TargetType="{x:Type fa:ImageAwesome}">
-                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Foreground" Value="{DynamicResource LabelTextBrush}"/>
                 <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Foreground" Value="#33FFFFFF"/>

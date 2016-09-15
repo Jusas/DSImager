@@ -146,6 +146,10 @@ namespace DSImager.ViewModels
         /// </summary>
         private IView<DarkFrameDialogViewModel> _darkFrameDialog;
 
+        /// <summary>
+        /// Reference to the flat frame capture tool window instance
+        /// </summary>
+        private IView<FlatFrameDialogViewModel> _flatFrameDialog;
 
         private int _selectedPreviewExposureIndex = 0;
         /// <summary>
@@ -693,6 +697,15 @@ namespace DSImager.ViewModels
             _darkFrameDialog.ShowModal();
         }
 
+        private void OpenFlatFrameDialog()
+        {
+            if (_flatFrameDialog == null || _flatFrameDialog.WasClosed)
+            {
+                _flatFrameDialog = _viewProvider.Instantiate<FlatFrameDialogViewModel>();
+                _flatFrameDialog.Show();
+            }
+            
+        }
 
 
 
@@ -809,6 +822,7 @@ namespace DSImager.ViewModels
         public ICommand SaveVisibleFrameCommand { get { return new CommandHandler(SaveVisibleFrame); } }
         public ICommand OpenBiasFrameDialogCommand { get { return new CommandHandler(OpenBiasFrameDialog); } }
         public ICommand OpenDarkFrameDialogCommand { get { return new CommandHandler(OpenDarkFrameDialog); } }
+        public ICommand OpenFlatFrameDialogCommand { get { return new CommandHandler(OpenFlatFrameDialog); } }
 
         #endregion
     }
