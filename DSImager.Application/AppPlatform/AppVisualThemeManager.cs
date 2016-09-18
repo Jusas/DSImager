@@ -10,6 +10,8 @@ namespace DSImager.Application.AppPlatform
 {
     public class AppVisualThemeManager : IAppVisualThemeManager
     {
+        public event AppVisualThemeChangedHandler OnThemeChanged;
+
         public string StandardTheme { get; private set; }
         public string StandardAccent { get; private set; }
 
@@ -26,9 +28,10 @@ namespace DSImager.Application.AppPlatform
         }
 
         public void SetTheme(string theme, string accent)
-        {
+        {            
             ThemeManager.ChangeAppStyle(System.Windows.Application.Current,
                         ThemeManager.GetAccent(accent), ThemeManager.GetAppTheme(theme));
+            OnThemeChanged?.Invoke(GetCurrentTheme(), theme);
         }
     }
 }

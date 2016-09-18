@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using DSImager.Application;
@@ -34,7 +35,6 @@ namespace DSImager
                         new Uri("pack://application:,,,/DSImager.Application;component/Themes/WhiteAccent.xaml"));
                     ThemeManager.AddAppTheme("WhiteTheme",
                         new Uri("pack://application:,,,/DSImager.Application;component/Themes/WhiteTheme.xaml"));
-                    
                 };
                 var mainWin = container.GetInstance<MainWindow>();
                 container.GetInstance<ILogService>().Trace(LogEventCategory.Informational, "App is starting");

@@ -13,6 +13,12 @@ namespace DSImager.ViewModels
 {
     public class FlatFrameDialogViewModel : BaseViewModel<FlatFrameDialogViewModel>
     {
+        public class SampleFrameInfo
+        {
+            public double ExposureTime { get; set; }
+            public double AduPcnt { get; set; }
+        }
+
         //-------------------------------------------------------------------------------------------------------
         #region FIELDS AND PROPERTIES
         //-------------------------------------------------------------------------------------------------------
@@ -24,10 +30,9 @@ namespace DSImager.ViewModels
         private IDialogProvider _dialogProvider;
         private ISystemEnvironment _systemEnvironment;
         private IProgramSettingsManager _programSettingsManager;
-        private IAppVisualThemeManager _appVisualThemeManager;
+        private IApplication _application;
+        private ITargetAduFinder _targetAduFinder;
 
-        private const string WhiteThemeName = "WhiteTheme";
-        private const string WhiteAccentName = "WhiteAccent";
 
         private List<string> _fileTypeOptionIds;
         public List<string> FileTypeOptionIds
@@ -72,6 +77,66 @@ namespace DSImager.ViewModels
                 SetNotifyingProperty(() => BinningModeOptions, ref _binningModeOptions, value);
             }
         }
+        
+        private int _maxADU;
+        public int MaxADU
+        {
+            get { return _maxADU; }
+            set
+            {
+                SetNotifyingProperty(() => MaxADU, ref _maxADU, value);
+            }
+        }
+
+        private bool _isAutoDetecting;
+        public bool IsAutoDetecting
+        {
+            get { return _isAutoDetecting; }
+            set
+            {
+                SetNotifyingProperty(() => IsAutoDetecting, ref _isAutoDetecting, value);
+            }
+        }
+
+        private bool _hadFindException;
+        public bool HadFindException
+        {
+            get { return _hadFindException; }
+            set
+            {
+                SetNotifyingProperty(() => HadFindException, ref _hadFindException, value);
+            }
+        }
+
+        private string _findExceptionMessage;
+        public string FindExceptionMessage
+        {
+            get { return _findExceptionMessage; }
+            set
+            {
+                SetNotifyingProperty(() => FindExceptionMessage, ref _findExceptionMessage, value);
+            }
+        }
+
+        private SampleFrameInfo _lastSampleFrameInfo;
+        public SampleFrameInfo LastSampleFrameInfo
+        {
+            get { return _lastSampleFrameInfo; }
+            set
+            {
+                SetNotifyingProperty(() => LastSampleFrameInfo, ref _lastSampleFrameInfo, value);
+            }
+        }
+
+        private bool _autoDetectCompleted;
+        public bool AutoDetectCompleted
+        {
+            get { return _autoDetectCompleted; }
+            set
+            {
+                SetNotifyingProperty(() => AutoDetectCompleted, ref _autoDetectCompleted, value);
+            }
+        }
 
         #endregion
 
@@ -83,7 +148,7 @@ namespace DSImager.ViewModels
             IImagingService imagingService, IStorageService storageService, IImageIoService imageIoService,
             IDialogProvider dialogProvider, ISystemEnvironment systemEnvironment, 
             IProgramSettingsManager programSettingsManager,
-            IAppVisualThemeManager appVisualThemeManager) : base(logService)
+            IApplication application, ITargetAduFinder targetAduFinder) : base(logService)
         {
             _cameraService = cameraService;
             _imagingService = imagingService;
@@ -92,7 +157,8 @@ namespace DSImager.ViewModels
             _dialogProvider = dialogProvider;
             _systemEnvironment = systemEnvironment;
             _programSettingsManager = programSettingsManager;
-            _appVisualThemeManager = appVisualThemeManager;
+            _application = application;
+            _targetAduFinder = targetAduFinder;
         }
 
         public override void Initialize()
@@ -117,6 +183,7 @@ namespace DSImager.ViewModels
             LoadSettings();
             ConstructFileTypeOptions();
             ConstructBinningOptions();
+            MaxADU = _cameraService.Camera.MaxADU;
         }
 
         private void LoadSettings()
@@ -154,7 +221,6 @@ namespace DSImager.ViewModels
 
         private void StartCapture()
         {
-            // TODO actions
             ImagingSession session = new ImagingSession()
             {
                 SaveOutput = true,
@@ -166,22 +232,36 @@ namespace DSImager.ViewModels
             {
                 Name = "Calibration",
                 BinXY = Settings.BinningModeXY,
-                Extension = "_Bias",
-                ExposureDuration = 0, // Zero should be acceptable for bias frames (== minimum exposure value) in ASCOM standard
+                Extension = "_Flat",
+                ExposureDuration = Settings.ExposureTime, // Zero should be acceptable for bias frames (== minimum exposure value) in ASCOM standard
                 FileFormat = Settings.FileFormat,
                 NumExposures = Settings.FrameCount,
             };
             session.ImageSequences.Add(sequence);
 
-            _imagingService.RunImagingSession(session);
+            _imagingService.OnImagingSessionCompleted += ImagingSessionCompletedHandler;
 
-            OwnerView.DialogResult = true;
+            // Waiting for the window to disappear before starting (a bit of a hax).
+            Task.Delay(300).ContinueWith((t) => _imagingService.RunImagingSession(session));
+            //_imagingService.RunImagingSession(session);
+            
             OwnerView.Close();
+        }
+
+        private void ImagingSessionCompletedHandler(ImagingSession session, bool completedSuccessfully, bool canceledByUser)
+        {
+            _imagingService.OnImagingSessionCompleted -= ImagingSessionCompletedHandler;
+            if(_application.IsInLightOverlayMode)
+                ToggleWhiteMode();
         }
 
         private void CancelCapture()
         {
-            OwnerView.DialogResult = false;
+            if(_application.IsInLightOverlayMode)
+                ToggleWhiteMode();
+
+            StopExposureAutoDetection();
+            
             OwnerView.Close();
         }
 
@@ -203,15 +283,52 @@ namespace DSImager.ViewModels
 
         private void ToggleWhiteMode()
         {
-            if (_appVisualThemeManager.GetCurrentTheme() == WhiteThemeName)
-            {
-                _appVisualThemeManager.SetTheme(_appVisualThemeManager.StandardTheme, _appVisualThemeManager.StandardAccent);
-            }
-            else
-            {
-                _appVisualThemeManager.SetTheme(WhiteThemeName, WhiteAccentName);
-            }
+            _application.SetLightOverlayMode(!_application.IsInLightOverlayMode);
         }
+
+        private async void RunExposureAutoDetection()
+        {
+            try
+            {
+                LastSampleFrameInfo = null;
+                AutoDetectCompleted = false;
+                HadFindException = false;
+                IsAutoDetecting = true;
+                _application.SetApplicationSessionVariable("rendering", false);
+                _targetAduFinder.OnFindExposureTaken += TargetAduFinderExposureTakenHandler;
+                Settings.ExposureTime = await _targetAduFinder.FindExposureValue(Settings.TargetADU, Settings.MaxExposureToTry);
+                _application.SetApplicationSessionVariable("rendering", true);
+                SetNotifyingProperty(() => Settings);
+                IsAutoDetecting = false;
+                AutoDetectCompleted = true;
+            }
+            catch (Exception e)
+            {
+                IsAutoDetecting = false;
+                HadFindException = true;
+                FindExceptionMessage = e.Message;                
+                LogService.LogMessage(new LogMessage(this, LogEventCategory.Error, "Exception raised during exposure auto-detection: " + e.Message));
+                _application.SetApplicationSessionVariable("rendering", true);
+            }
+            
+        }
+
+        private void TargetAduFinderExposureTakenHandler(double usedExposureTime, int resultingAdu)
+        {
+            LastSampleFrameInfo = new SampleFrameInfo()
+            {
+                ExposureTime = usedExposureTime,
+                AduPcnt = (double)resultingAdu / _cameraService.Camera.MaxADU * 100.0
+            };
+        }
+
+        private void StopExposureAutoDetection()
+        {
+            _targetAduFinder.CancelFindOperation();
+            IsAutoDetecting = false;
+            _application.SetApplicationSessionVariable("rendering", true);
+        }
+
 
         #endregion
 
@@ -223,6 +340,8 @@ namespace DSImager.ViewModels
         public ICommand CancelCaptureCommand { get { return new CommandHandler(CancelCapture); } }
         public ICommand SelectOutputDirectoryCommand { get { return new CommandHandler(SelectOutputDirectory); } }
         public ICommand ToggleWhiteModeCommand { get { return new CommandHandler(ToggleWhiteMode);} }
+        public ICommand RunExposureAutoDetectionCommand { get { return new CommandHandler(RunExposureAutoDetection); } }
+        public ICommand StopExposureAutoDetectionCommand { get { return new CommandHandler(StopExposureAutoDetection); } }
 
         #endregion
     }
@@ -231,9 +350,23 @@ namespace DSImager.ViewModels
     // ReSharper disable once InconsistentNaming
     public class FlatFrameDialogViewModelDT : FlatFrameDialogViewModel
     {
-        public FlatFrameDialogViewModelDT() : base(null, null, null, null, null, null, null, null, null)
+        public FlatFrameDialogViewModelDT() : base(null, null, null, null, null, null, null, null, null, null)
         {
-            
+            LastSampleFrameInfo = new SampleFrameInfo() {AduPcnt = 15.5, ExposureTime = 0.55};
+            HadFindException = true;
+            FindExceptionMessage =
+                "The exposure time required is estimated to be 546456, which is larger than given maximum exposure value";
+            MaxADU = 35000;
+            Settings = new ProgramSettings.FlatFrameDialogSettings()
+            {
+                BinningModeXY = 1,
+                ExposureTime = 5,
+                FileFormat = "fits",
+                FrameCount = 1,
+                MaxExposureToTry = 3,
+                SavePath = @"c:\",
+                TargetADU = 20000
+            };
         }
     }
 }

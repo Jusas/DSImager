@@ -26,7 +26,8 @@
             <RowDefinition Height="21*"/>
         </Grid.RowDefinitions>
         <Border BorderBrush="Black" BorderThickness="1" Background="Black" Name="HistogramBorder">
-            <Polygon Name="HistogramPoly" Stretch="Fill" Fill="White" Points="{Binding HistogramPolyPoints, Converter={StaticResource XyListToPointCollectionConverter}}">
+            <Polygon Name="HistogramPoly" Stretch="Fill" Fill="White" Points="{Binding HistogramPolyPoints, Converter={StaticResource XyListToPointCollectionConverter}}"
+                     SnapsToDevicePixels="True" StrokeThickness="5">
                 <Polygon.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform ScaleY="-1"/>

@@ -386,6 +386,27 @@ namespace DSImager.ViewModels
             }
         }
 
+        private bool _needsWhiteWorkspace;
+        [Obsolete("don't use this")]
+        public bool NeedsWhiteWorkspace
+        {
+            get { return _needsWhiteWorkspace; }
+            set
+            {
+                SetNotifyingProperty(() => NeedsWhiteWorkspace, ref _needsWhiteWorkspace, value);
+            }
+        }
+
+        private bool _renderingEnabled;
+        public bool RenderingEnabled
+        {
+            get { return _renderingEnabled; }
+            set
+            {
+                SetNotifyingProperty(() => RenderingEnabled, ref _renderingEnabled, value);
+            }
+        }
+
         private string _userPauseString = "Paused by user";
 
         #endregion
@@ -457,6 +478,30 @@ namespace DSImager.ViewModels
             ConstructPreviewExposureOptions();
             ConstructBinningOptions();
             SetupBindings();
+            
+            _application.OnLightOverlayModeSet += LightOverlayModeSetHandler;
+            _application.OnSessionVariableChanged += OnAppSessionVarChanged;
+            _application.SetApplicationSessionVariable("rendering", true);
+        }
+
+        private void OnAppSessionVarChanged(string name, object oldVariable, object newVariable)
+        {
+            if (name == "rendering")
+            {
+                if ((bool) newVariable == true)
+                {
+                    RenderingEnabled = true;
+                }
+                else
+                {
+                    RenderingEnabled = false;
+                }
+            }
+        }
+
+        private void LightOverlayModeSetHandler(bool lightOverlayMode)
+        {
+            //NeedsWhiteWorkspace = lightOverlayMode;
         }
 
         private void ConstructPreviewExposureOptions()

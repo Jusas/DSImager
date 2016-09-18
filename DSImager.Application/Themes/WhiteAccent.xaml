@@ -28,7 +28,7 @@
     <SolidColorBrush x:Key="WindowTitleColorBrush" Color="{StaticResource AccentColor}" options:Freeze="True" />
 
     <LinearGradientBrush x:Key="ProgressBrush" EndPoint="0.001,0.5" StartPoint="1.002,0.5" options:Freeze="True">
-        <GradientStop Color="{StaticResource HighlightColor}" Offset="0" />
+        <GradientStop Color="{StaticResource AccentBaseColor}" Offset="0" />
         <GradientStop Color="{StaticResource AccentColor3}" Offset="1" />
     </LinearGradientBrush>
 

@@ -18,6 +18,7 @@
     xmlns:utils="clr-namespace:DSImager.Application.Utils"
     xmlns:fa="http://schemas.fontawesome.io/icons/"
     xmlns:collections1="clr-namespace:System.Collections;assembly=mscorlib"
+    xmlns:qc="http://QuickConverter.CodePlex.com/"
     x:Class="DSImager.Application.Views.MainWindow"
     Title="{Binding ViewTitle}" Height="768" Width="1217.5" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
     WindowStartupLocation="CenterScreen">
@@ -54,6 +55,8 @@
                 <system:String x:Key="{x:Static viewModelStates:MainViewState.Imaging}">&#xF04D;</system:String>
             </utils:ButtonStateContent.StateContentPairs>
         </utils:ButtonStateContent>
+        <Visibility x:Key="VisibilityCollapsed">Collapsed</Visibility>
+        <Visibility x:Key="VisibilityVisible">Visible</Visibility>
     </controls:MetroWindow.Resources>
     <Grid x:Name="TopLevelGrid" d:DataContext="{d:DesignInstance Type=viewModels:MainViewModelDT, IsDesignTimeCreatable=True}">
         <Grid.RowDefinitions>
@@ -411,8 +414,12 @@
         <Canvas Grid.Row="2" Name="ContentAreaCanvas">
             <StackPanel Orientation="Vertical" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Panel.ZIndex="1">
                 <Canvas Name="ProgressBarCanvas" Height="30" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Panel.ZIndex="1" Visibility="{Binding IsExposuring, Converter={StaticResource VisibilityConverter}, ConverterParameter=True}" >
-                    <ProgressBar Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Value="{Binding CurrentExposureProgress}" Panel.ZIndex="1" Background="Black" BorderBrush="Black" Height="{Binding Parent.ActualHeight, RelativeSource={RelativeSource Self}}" Opacity="0.4" />
-                    <Label Content="{Binding ExposureStatusText}" Height="30" VerticalContentAlignment="Center" TextOptions.TextFormattingMode="Display" Canvas.Top="0" FontSize="14" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" HorizontalContentAlignment="Center" />
+                    <ProgressBar Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Value="{Binding CurrentExposureProgress}" Panel.ZIndex="1" Background="Black" BorderBrush="{DynamicResource GrayBrush9}" Height="{Binding Parent.ActualHeight, RelativeSource={RelativeSource Self}}" Opacity="0.4" />
+                    <Label Content="{Binding ExposureStatusText}" Height="30" VerticalContentAlignment="Center" TextOptions.TextFormattingMode="Display" Canvas.Top="0" FontSize="14" Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" HorizontalContentAlignment="Center" >
+                        <Label.Effect>
+                            <DropShadowEffect ShadowDepth="1" BlurRadius="1"/>
+                        </Label.Effect>
+                    </Label>
                 </Canvas>
                 <Border Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" BorderBrush="#7F000000" BorderThickness="2" Panel.ZIndex="1" Margin="0,-2,0,0">
                     <Border.Visibility>
@@ -470,6 +477,12 @@
             </StackPanel>
             
             <appcontrols:ZoomableBorder Width="{Binding Parent.ActualWidth, RelativeSource={RelativeSource Self}}" Height="{Binding Parent.ActualHeight, RelativeSource={RelativeSource Self}}" ClipToBounds="True">
+                <appcontrols:ZoomableBorder.Visibility>
+                    <qc:MultiBinding P0="{Binding LastExposure}" P1="{Binding RenderingEnabled}"
+                                     V0="{StaticResource VisibilityVisible}" V1="{StaticResource VisibilityCollapsed}" 
+                                     Converter="($P0 != null ## $P1) ? $V0 : $V1">
+                    </qc:MultiBinding>
+                </appcontrols:ZoomableBorder.Visibility>
                 <Border BorderBrush="#7F97FF00" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Image Name="CameraImage" Source="{Binding LastExposure, Converter={StaticResource ExposureToImageConverter}}"/>
                 </Border>

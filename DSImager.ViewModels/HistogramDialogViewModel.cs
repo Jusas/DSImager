@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Input;
 using DSImager.Core.Interfaces;
 using DSImager.Core.Models;
@@ -150,16 +151,30 @@ namespace DSImager.ViewModels
         {
             StretchMax = exposure.StretchMax;
             StretchMin = exposure.StretchMin;
-
+            
+            int xMax = 256;
+            int yMax = 128;
+            
             HistogramMax = exposure.MaxDepth;
+            int maxPixelCount = exposure.Histogram.Max(x => x.Value);
             List<XY> points = new List<XY>();
-            for (int x = 0; x <= exposure.MaxDepth; x++)
+
+            var hStep = (double) HistogramMax/xMax;
+            var vStep = (double) maxPixelCount/yMax;
+            for (int x = 0; x <= xMax; x++)
             {
-                double y = 0;
-                if (exposure.Histogram.ContainsKey(x))
-                    y = exposure.Histogram[x];
-                points.Add(new XY { X = x, Y = y});
+                double val = 0;
+                for (int z = 0; z < hStep; z++)
+                {
+                    var hkey = (int)(x * hStep + z);
+                    if (exposure.Histogram.ContainsKey(hkey))
+                        val += exposure.Histogram[hkey];
+                }
+                val = val / hStep;
+                val = val / vStep;
+                points.Add(new XY { X = x, Y = val });
             }
+            
             HistogramPolyPoints = points;
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using DSImager.Core.System;
 
 namespace DSImager.Core.Interfaces
 {
@@ -16,5 +17,7 @@ namespace DSImager.Core.Interfaces
         void Show();
         void Close();
         bool ShowModal();
+
+        XY? GetControlSize(string controlName);
     }
 }

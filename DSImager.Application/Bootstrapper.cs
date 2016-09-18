@@ -49,9 +49,15 @@ namespace DSImager.Application
 
             var container = new Container();
 
+            // Setup Quick Converter.
+            QuickConverter.EquationTokenizer.AddNamespace(typeof(object));
+            QuickConverter.EquationTokenizer.AddNamespace("System", Assembly.GetAssembly(typeof(object)));
+            QuickConverter.EquationTokenizer.AddNamespace(typeof(System.Windows.Visibility));
+            QuickConverter.EquationTokenizer.AddAssembly(Assembly.GetAssembly(typeof(System.Windows.Visibility)));
+
             container.Register<ISystemEnvironment, SystemEnvironment>(Lifestyle.Singleton);
             container.Register<IAppVisualThemeManager, AppVisualThemeManager>(Lifestyle.Singleton);
-            container.Register<IProgramSettingsManager, ProgramSettingsManager>(Lifestyle.Singleton);
+            container.Register<IProgramSettingsManager, ProgramSettingsManager>(Lifestyle.Singleton);            
             container.Register<IApplication, WpfApplication>(Lifestyle.Singleton);
             container.Register<IViewProvider, ViewProvider>(Lifestyle.Singleton);
             container.Register<IDialogProvider, DialogProvider>();
@@ -61,9 +67,10 @@ namespace DSImager.Application
             container.Register<ICameraService, CameraService>(Lifestyle.Singleton);
             container.Register<IImagingService, ImagingService>(Lifestyle.Singleton);
             container.Register<IImageIoService, ImageIoService>(Lifestyle.Singleton);
-            
-            
- 
+            container.Register<ITargetAduFinder, TargetAduFinder>(Lifestyle.Singleton);
+
+
+
             var viewModelTypes =
                 GetAllTypesImplementingOpenGenericType(typeof (IViewModel<>), assembly).ToList();
             viewModelTypes.ForEach(t => container.Register(t));

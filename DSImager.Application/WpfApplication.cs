@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,8 +26,22 @@ namespace DSImager.Application
         private System.Windows.Application _application { get { return System.Windows.Application.Current; } }
         private MainWindow _mainWindow { get { return (MainWindow)_application.MainWindow; } }
 
+        public event ApplicationLightOverlayModeHandler OnLightOverlayModeSet;
+        public event ApplicationSessionVariableChangedHandler OnSessionVariableChanged;
         public event EventHandler OnAppStartUp;
         public event EventHandler OnAppExit;
+    
+        private const string WhiteThemeName = "WhiteTheme";
+        private const string WhiteAccentName = "WhiteAccent";
+
+        private Dictionary<string, object> _sessionVariables = new Dictionary<string, object>();
+
+        private IAppVisualThemeManager _appVisualThemeManager;
+
+        public bool IsInLightOverlayMode
+        {
+            get { return _appVisualThemeManager.GetCurrentTheme() == WhiteThemeName; }
+        }
 
         #endregion
 
@@ -34,19 +49,16 @@ namespace DSImager.Application
         #region METHODS
         //-------------------------------------------------------------------------------------------------------
 
-        public WpfApplication()
+        public WpfApplication(IAppVisualThemeManager appVisualThemeManager)
         {
+            _appVisualThemeManager = appVisualThemeManager;
         }
 
         public void Initialize()
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
-
-            // Setup Quick Converter.
-            QuickConverter.EquationTokenizer.AddNamespace(typeof(object));
-            QuickConverter.EquationTokenizer.AddNamespace(typeof(System.Windows.Visibility));
-
+            
             _application.Exit += ApplicationOnExit;
             _application.Startup += ApplicationOnStartup;   
         }
@@ -67,6 +79,40 @@ namespace DSImager.Application
         public void ExitApplication(int exitCode)
         {
             _application.Shutdown(exitCode);
+        }
+
+        public void SetLightOverlayMode(bool lightOverlayMode)
+        {
+            if (lightOverlayMode)
+            {
+                _appVisualThemeManager.SetTheme(WhiteThemeName, WhiteAccentName);
+            }
+            else
+            {
+                _appVisualThemeManager.SetTheme(_appVisualThemeManager.StandardTheme, _appVisualThemeManager.StandardAccent);
+            }
+            OnLightOverlayModeSet?.Invoke(lightOverlayMode);
+        }
+
+        public void SetApplicationSessionVariable(string name, object variable)
+        {
+            object oldval = null;
+            if (!_sessionVariables.ContainsKey(name))
+                _sessionVariables.Add(name, variable);
+            else
+            {
+                oldval = _sessionVariables[name];
+                _sessionVariables[name] = variable;
+            }
+                
+            OnSessionVariableChanged?.Invoke(name, oldval, variable);
+        }
+
+        public object GetApplicationSessionVariable(string name)
+        {
+            if (_sessionVariables.ContainsKey(name))
+                return _sessionVariables[name];
+            return null;
         }
 
         #endregion

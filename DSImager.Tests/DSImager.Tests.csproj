@@ -87,6 +87,7 @@
     <Compile Include="Services\CameraServiceTests.cs" />
     <Compile Include="Services\ImagingServiceTests.cs" />
     <Compile Include="Services\StorageServiceTests.cs" />
+    <Compile Include="Services\TargetAduFinderTests.cs" />
     <Compile Include="TestSetup.cs" />
   </ItemGroup>
   <ItemGroup>

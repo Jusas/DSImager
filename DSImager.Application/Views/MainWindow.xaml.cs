@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -14,7 +15,13 @@ namespace DSImager.Application.Views
     public partial class MainWindow
     {
         public MainWindow(MainViewModel viewModel)
-        {            
+        {
+            // Setup Quick Converter.
+            QuickConverter.EquationTokenizer.AddNamespace(typeof(object));
+            QuickConverter.EquationTokenizer.AddNamespace("System", Assembly.GetAssembly(typeof(object)));
+            QuickConverter.EquationTokenizer.AddNamespace(typeof(System.Windows.Visibility));
+            QuickConverter.EquationTokenizer.AddAssembly(Assembly.GetAssembly(typeof(System.Windows.Visibility)));
+
             InitializeComponent();
             ViewModel = viewModel;
 
