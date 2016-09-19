@@ -56,7 +56,7 @@
                     </LinearGradientBrush>
                 </fa:ImageAwesome.Foreground>
             </fa:ImageAwesome>
-            <TextBlock Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" Foreground="White" Grid.ColumnSpan="2" VerticalAlignment="Center">Warning! The temperature difference between ambient and current temperature is over 20°C! Without controlled warmup this may lead to a thermal shock and damage your equipment. Are you sure you want to proceed?</TextBlock>
+            <TextBlock Grid.Row="0" Grid.Column="1" TextWrapping="Wrap" Foreground="White" Grid.ColumnSpan="2" VerticalAlignment="Center">Warning! High temperature differences without controlled warmup may lead to a thermal shock and damage your equipment. Are you sure you want to proceed?</TextBlock>
             <Button Grid.Row="1" Grid.Column="1" Margin="5,5,5,4" Background="#FF476A4F" Command="{Binding ConfirmCoolerOffCommand}">Yes, I understand</Button>
             <Button Grid.Row="1" Grid.Column="2" Margin="5,5,5,4" Background="#FF593636" Command="{Binding CancelCoolerOffCommand}">No, cancel</Button>
         </Grid>

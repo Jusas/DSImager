@@ -205,7 +205,8 @@ namespace DSImager.ViewModels
 
             var tempHistory = _cameraService.CameraTemperatureHistory;
             AmbientTemperature = _cameraService.AmbientTemperature;
-            DesiredTemperature = _cameraService.DesiredCCDTemperature;
+            if(_cameraService.Camera.CoolerOn)
+                DesiredTemperature = _cameraService.DesiredCCDTemperature;
             
             double min = Double.MaxValue;
             double max = Double.MinValue;
@@ -268,15 +269,23 @@ namespace DSImager.ViewModels
         {
             if (_cameraService.IsCoolerOn)
             {
-                var tempDiff = Math.Abs(_cameraService.CurrentCCDTemperature - _cameraService.AmbientTemperature);
-                if (tempDiff >= 20)
+                if (double.IsNaN(_cameraService.AmbientTemperature))
                 {
                     DisplayThermalShockWarning = true;
                 }
                 else
                 {
-                    SetCoolerOff();
+                    var tempDiff = Math.Abs(_cameraService.CurrentCCDTemperature - _cameraService.AmbientTemperature);
+                    if (tempDiff >= 20)
+                    {
+                        DisplayThermalShockWarning = true;
+                    }
+                    else
+                    {
+                        SetCoolerOff();
+                    }
                 }
+                
             }
         }
 
@@ -300,7 +309,7 @@ namespace DSImager.ViewModels
 
         private void SetDesiredCCDTemperature()
         {
-            if (_cameraService.Camera != null)
+            if (_cameraService.Camera != null && _cameraService.Camera.CoolerOn)
                 _cameraService.SetDesiredCCDTemperature(DesiredTemperature);
         }
 

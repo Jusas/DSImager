@@ -102,7 +102,15 @@ namespace DSImager.Core.Services
             {
                 if (Camera != null && Camera.Connected && Camera.CanSetCCDTemperature)
                 {
-                    return Camera.HeatSinkTemperature;
+                    try
+                    {
+                        return Camera.HeatSinkTemperature;
+                    }
+                    catch (Exception e)
+                    {
+                        return Double.NaN;
+                    }
+                    
                 }
                 return Double.NaN;
             }
@@ -206,10 +214,10 @@ namespace DSImager.Core.Services
             {
                 // Safeguards: set CCDTemperature to ambient temperature if it can be set.
                 // Truthfully I'm not sure if this has effect after the camera gets disconnected.
-                if (Camera.CanSetCCDTemperature)
+                /*if (Camera.CanSetCCDTemperature)
                 {
-                    Camera.SetCCDTemperature = Camera.HeatSinkTemperature;
-                }
+                    Camera.SetCCDTemperature = Double.IsNaN(Camera.HeatSinkTemperature) ? 0 : Camera.HeatSinkTemperature;
+                }*/
 
                 if (Camera.CameraState != CameraStates.cameraIdle)
                 {
@@ -440,10 +448,10 @@ namespace DSImager.Core.Services
             if (OnWarmUpStarted != null)
                 OnWarmUpStarted();
 
+            var targetTemp = double.IsNaN(AmbientTemperature) ? (DesiredCCDTemperature > 0 ? DesiredCCDTemperature : 0) : Camera.HeatSinkTemperature;
             do
             {
-                var currentTemp = Camera.CCDTemperature;
-                var targetTemp = Camera.HeatSinkTemperature;
+                var currentTemp = Camera.CCDTemperature;                
 
                 var tempDiff = targetTemp - currentTemp;
                 var sign = tempDiff / Math.Abs(tempDiff);
@@ -474,10 +482,10 @@ namespace DSImager.Core.Services
                         return;
                     }
 
-                    if (Math.Abs(Camera.HeatSinkTemperature - Camera.CCDTemperature) <= maxDiff)
+                    if (Math.Abs(targetTemp - Camera.CCDTemperature) <= maxDiff)
                         break;
                 }
-            } while (Math.Abs(Camera.HeatSinkTemperature - Camera.CCDTemperature) > maxDiff);
+            } while (Math.Abs(targetTemp - Camera.CCDTemperature) > maxDiff);
 
             _isWarmingUp = false;
             _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, "CCD warmup sequence completed."));
