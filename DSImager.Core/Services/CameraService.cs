@@ -54,8 +54,8 @@ namespace DSImager.Core.Services
         private Exposure _exposure;
         public Exposure LastExposure { get { return _exposure; } }
 
-        const int StoredTemperatureHistoryLength = 36;
-        const int TemperatureQueryInterval = 5;
+        const int StoredTemperatureHistoryLength = 18;
+        const int TemperatureQueryInterval = 10;
 
         private CancellationTokenSource _temperatureMonitoringToken;
         private ObservableCollection<double> _cameraTemperatureHistory = new ObservableCollection<double>();
