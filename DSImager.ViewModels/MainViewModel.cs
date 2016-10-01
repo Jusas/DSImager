@@ -293,7 +293,7 @@ namespace DSImager.ViewModels
         public Exposure LastExposure
         {
             get { return _lastExposure; }
-            private set
+            protected set
             {
                 SetNotifyingProperty(() => LastExposure, ref _lastExposure, value);
             }
@@ -404,6 +404,16 @@ namespace DSImager.ViewModels
             set
             {
                 SetNotifyingProperty(() => RenderingEnabled, ref _renderingEnabled, value);
+            }
+        }
+
+        private bool _showCrossHair;
+        public bool ShowCrossHair
+        {
+            get { return _showCrossHair; }
+            set
+            {
+                SetNotifyingProperty(() => ShowCrossHair, ref _showCrossHair, value);
             }
         }
 
@@ -753,7 +763,12 @@ namespace DSImager.ViewModels
         }
 
 
+        private void ToggleCrossHairEnabled()
+        {
+            ShowCrossHair = !ShowCrossHair;
+        }
 
+        //--------------------------------------------------------------------------------------
         // Event handlers
 
         private void OnViewLoaded(object sender, EventArgs eventArgs)
@@ -848,6 +863,7 @@ namespace DSImager.ViewModels
         }
 
 
+
         #endregion
 
         //-------------------------------------------------------------------------------------------------------
@@ -868,6 +884,7 @@ namespace DSImager.ViewModels
         public ICommand OpenBiasFrameDialogCommand { get { return new CommandHandler(OpenBiasFrameDialog); } }
         public ICommand OpenDarkFrameDialogCommand { get { return new CommandHandler(OpenDarkFrameDialog); } }
         public ICommand OpenFlatFrameDialogCommand { get { return new CommandHandler(OpenFlatFrameDialog); } }
+        public ICommand ToggleCrossHairCommand { get { return new CommandHandler(ToggleCrossHairEnabled); } }
 
         #endregion
     }
@@ -880,7 +897,7 @@ namespace DSImager.ViewModels
     {
         public MainViewModelDT() : base(null, null, null, null, null, null, null, null, null)
         {
-            
+            LastExposure = new Exposure(800, 600, new int[800*600], 1, false);
         }
     }
 }
