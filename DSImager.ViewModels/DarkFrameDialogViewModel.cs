@@ -321,7 +321,7 @@ namespace DSImager.ViewModels
             else
             {
                 session.OutputDirectory = Settings.SavePath;
-                session.PauseAfterEachSequence = false;
+                session.PauseAfterEachSequence = SelectedSourceSession.PauseAfterEachSequence; // assuming
                 session.RepeatTimes = 1;
                 foreach (var s in SourceImageSequences)
                 {
