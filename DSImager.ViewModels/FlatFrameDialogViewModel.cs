@@ -241,18 +241,25 @@ namespace DSImager.ViewModels
 
             _imagingService.OnImagingSessionCompleted += ImagingSessionCompletedHandler;
 
-            // Waiting for the window to disappear before starting (a bit of a hax).
+            // Waiting for the window to disappear before starting (a bit of a hax).            
             Task.Delay(300).ContinueWith((t) => _imagingService.RunImagingSession(session));
+
+            if(_application.IsInLightOverlayMode)
+                _application.SetApplicationSessionVariable("rendering", false);
+
             //_imagingService.RunImagingSession(session);
-            
+
             OwnerView.Close();
         }
 
         private void ImagingSessionCompletedHandler(ImagingSession session, bool completedSuccessfully, bool canceledByUser)
         {
             _imagingService.OnImagingSessionCompleted -= ImagingSessionCompletedHandler;
-            if(_application.IsInLightOverlayMode)
+            if (_application.IsInLightOverlayMode)
+            {
+                _application.SetApplicationSessionVariable("rendering", true);
                 ToggleWhiteMode();
+            }
         }
 
         private void CancelCapture()

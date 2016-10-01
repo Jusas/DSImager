@@ -65,7 +65,7 @@ namespace DSImager.Tests.Services
                 }
             }
 
-            service.Setup(x => x.TakeExposure(It.IsAny<double>(), It.IsAny<bool>()))
+            service.Setup(x => x.TakeExposure(It.IsAny<double>(), It.IsAny<bool>(), It.IsAny<bool>()))
                 .Callback(() =>
                 {
                     service.SetupGet(x => x.LastExposure)
@@ -92,7 +92,7 @@ namespace DSImager.Tests.Services
 
             var foundExposure = await finder.FindExposureValue(targetAdu, 3);
 
-            moqCameraService.Verify(x => x.TakeExposure(It.IsAny<double>(), It.IsAny<bool>()), Times.Exactly(3));
+            moqCameraService.Verify(x => x.TakeExposure(It.IsAny<double>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Exactly(3));
         }
 
     }

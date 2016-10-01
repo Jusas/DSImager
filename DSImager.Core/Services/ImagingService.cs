@@ -264,9 +264,21 @@ namespace DSImager.Core.Services
             // If we're exposuring, stop it if camera supports stopping, otherwise abort
             if (_cameraService.IsExposuring)
             {
+                _cameraService.OnExposureCompleted += HandleCanceledImagingOperation;
                 _cameraService.StopOrAbortExposure();
             }
         }
+
+        private void HandleCanceledImagingOperation(bool successful, Exposure exposure)
+        {
+            // Canceling seems to leave the buffer in a questionable state: the next
+            // frame is usually broken (tested on Atik 414EX). Therefore take one "garbage frame"
+            // so that the next frame taken won't be a disappointment.
+
+            _cameraService.OnExposureCompleted -= HandleCanceledImagingOperation;
+            _cameraService.TakeExposure(0, true, true);
+        }
+
 
         /// <summary>
         /// todo reason Sequence completed
@@ -282,10 +294,7 @@ namespace DSImager.Core.Services
             IsSessionPaused = true;
 
             // Stop any exposure in progress.
-            if (_cameraService.IsExposuring)
-            {
-                _cameraService.StopOrAbortExposure();
-            }
+            CancelCurrentImagingOperation();
 
             if (OnImagingSessionPaused != null)
                 OnImagingSessionPaused(_storedSession, reason, error);

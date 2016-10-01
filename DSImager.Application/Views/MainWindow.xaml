@@ -492,41 +492,43 @@
                     </qc:MultiBinding>
                 </appcontrols:ZoomableBorder.Visibility>
                 <Border BorderBrush="#7F97FF00" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Canvas Width="{Binding Source.Width, ElementName=CameraImage, Mode=OneWay}"
-                            Height="{Binding Source.Height, ElementName=CameraImage, Mode=OneWay}">
-                    <Image Name="CameraImage" Source="{Binding LastExposure, Converter={StaticResource ExposureToImageConverter}}"
-                           />
-                        <Line Width="{Binding ElementName=CameraImage, Path=ActualWidth}" 
-                              Height="{Binding ElementName=CameraImage, Path=ActualHeight}" 
-                              Stroke="#7F97FF00" Fill="#7F97FF00" 
-                              X1="0" 
-                              X2="{Binding ElementName=CameraImage, Path=ActualWidth}">
-                            <Line.Y1>
-                                <qc:Binding P="{Binding ElementName=CameraImage, Path=ActualHeight}" Convert="$P * 0.5"></qc:Binding>
-                            </Line.Y1>
-                            <Line.Y2>
-                                <qc:Binding P="{Binding ElementName=CameraImage, Path=ActualHeight}" Convert="$P * 0.5"></qc:Binding>
-                            </Line.Y2>
-                            <Line.Visibility>
-                                <Binding Path="ShowCrossHair" Converter="{StaticResource VisibilityConverter}" ConverterParameter="True"></Binding>
-                            </Line.Visibility>
-                        </Line>
-                        <Line Width="{Binding ElementName=CameraImage, Path=ActualWidth}" 
-                              Height="{Binding ElementName=CameraImage, Path=ActualHeight}" 
-                              Stroke="#7F97FF00" Fill="#7F97FF00" 
-                              Y1="0" 
-                              Y2="{Binding ElementName=CameraImage, Path=ActualHeight}">
-                            <Line.X1>
-                                <qc:Binding P="{Binding ElementName=CameraImage, Path=ActualWidth}" Convert="$P * 0.5"></qc:Binding>
-                            </Line.X1>
-                            <Line.X2>
-                                <qc:Binding P="{Binding ElementName=CameraImage, Path=ActualWidth}" Convert="$P * 0.5"></qc:Binding>
-                            </Line.X2>
-                            <Line.Visibility>
-                                <Binding Path="ShowCrossHair" Converter="{StaticResource VisibilityConverter}" ConverterParameter="True"></Binding>
-                            </Line.Visibility>
-                        </Line>
-                    </Canvas>
+                    <Viewbox>
+                        <Canvas Width="{Binding ActualWidth, ElementName=CameraImage, Mode=OneWay}"
+                                Height="{Binding ActualHeight, ElementName=CameraImage, Mode=OneWay}">
+                        <Image Name="CameraImage" Source="{Binding LastExposure, Converter={StaticResource ExposureToImageConverter}}"
+                               />
+                            <Line Width="{Binding ElementName=CameraImage, Path=ActualWidth}" 
+                                  Height="{Binding ElementName=CameraImage, Path=ActualHeight}" 
+                                  Stroke="#7F97FF00" Fill="#7F97FF00" 
+                                  X1="0" 
+                                  X2="{Binding ElementName=CameraImage, Path=ActualWidth}">
+                                <Line.Y1>
+                                    <qc:Binding P="{Binding ElementName=CameraImage, Path=ActualHeight}" Convert="$P * 0.5"></qc:Binding>
+                                </Line.Y1>
+                                <Line.Y2>
+                                    <qc:Binding P="{Binding ElementName=CameraImage, Path=ActualHeight}" Convert="$P * 0.5"></qc:Binding>
+                                </Line.Y2>
+                                <Line.Visibility>
+                                    <Binding Path="ShowCrossHair" Converter="{StaticResource VisibilityConverter}" ConverterParameter="True"></Binding>
+                                </Line.Visibility>
+                            </Line>
+                            <Line Width="{Binding ElementName=CameraImage, Path=ActualWidth}" 
+                                  Height="{Binding ElementName=CameraImage, Path=ActualHeight}" 
+                                  Stroke="#7F97FF00" Fill="#7F97FF00" 
+                                  Y1="0" 
+                                  Y2="{Binding ElementName=CameraImage, Path=ActualHeight}">
+                                <Line.X1>
+                                    <qc:Binding P="{Binding ElementName=CameraImage, Path=ActualWidth}" Convert="$P * 0.5"></qc:Binding>
+                                </Line.X1>
+                                <Line.X2>
+                                    <qc:Binding P="{Binding ElementName=CameraImage, Path=ActualWidth}" Convert="$P * 0.5"></qc:Binding>
+                                </Line.X2>
+                                <Line.Visibility>
+                                    <Binding Path="ShowCrossHair" Converter="{StaticResource VisibilityConverter}" ConverterParameter="True"></Binding>
+                                </Line.Visibility>
+                            </Line>
+                        </Canvas>
+                    </Viewbox>
                 </Border>
             </appcontrols:ZoomableBorder>
         </Canvas>

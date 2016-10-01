@@ -236,15 +236,23 @@ namespace DSImager.Core.Services
         /// </summary>
         /// <param name="duration">The exposure duration, in seconds</param>
         /// <param name="isCalibrationFrame">If the frame is a calibration frame, set to true</param>
+        /// <param name="garbageFrame">If we consider this a "garbage frame", ie. this frame is taken for cleanup purposes.
+        /// No events will be triggered by this frame.</param>
         /// <returns>
         /// Did exposuring succeed or fail. Note: upon stopping exposure, 
         /// the return value is true (exposure data is still saved). Upon aborting, the value is false.
         /// </returns>
-        public async Task<bool> TakeExposure(double duration, bool isCalibrationFrame = false)
+        public async Task<bool> TakeExposure(double duration, bool isCalibrationFrame = false, bool garbageFrame = false)
         {
             _isExposuring = true;
 
-            _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational,
+            if (garbageFrame)
+            {
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational, 
+                    "Taking a cleanup frame"));
+            }
+            else
+                _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational,
                     string.Format("Starting new exposure: {0:F}s", duration)));
 
             if (Camera.CameraState != CameraStates.cameraIdle)
@@ -262,12 +270,12 @@ namespace DSImager.Core.Services
                 ExposureTime = duration
             };
 
-            if (OnExposureStarted != null)
+            if (OnExposureStarted != null && !garbageFrame)
                 OnExposureStarted(duration);
 
             Camera.StartExposure(duration, !isCalibrationFrame);
             
-            if (OnExposureProgressChanged != null)
+            if (OnExposureProgressChanged != null && !garbageFrame)
                 OnExposureProgressChanged(0, duration, ExposurePhase.Exposuring);
 
             var startTime = DateTime.Now;
@@ -277,13 +285,22 @@ namespace DSImager.Core.Services
             {
                 await Task.Delay(200);
                 currentDuration = DateTime.Now - startTime;
-                if (OnExposureProgressChanged != null)
+                if (OnExposureProgressChanged != null && !garbageFrame)
                     OnExposureProgressChanged(currentDuration.TotalSeconds, duration, ExposurePhase.Exposuring);
             }
 
             // Done, download the image.
             if (Camera.ImageReady)
             {
+
+                if (garbageFrame)
+                {
+                    _logService.LogMessage(new LogMessage(this, LogEventCategory.Informational,
+                        "Cleanup frame taken"));
+                    _isExposuring = false;
+                    return true;
+                }
+
                 if (OnExposureProgressChanged != null)
                     OnExposureProgressChanged(currentDuration.TotalSeconds, duration, ExposurePhase.Downloading);
 
@@ -332,7 +349,7 @@ namespace DSImager.Core.Services
 
                 _isExposuring = false;
 
-                if (OnExposureCompleted != null)
+                if (OnExposureCompleted != null && !garbageFrame)
                     OnExposureCompleted(false, null);
 
                 return false;

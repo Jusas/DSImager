@@ -64,7 +64,7 @@ namespace DSImager.Tests.Services
             systemEnv.SetupGet(x => x.UserHomeDirectory).Returns(Path.GetTempPath());
             systemEnv.SetupGet(x => x.TemporaryFilesDirectory).Returns(Path.GetTempPath());
 
-            cameraService.Setup(x => x.TakeExposure(It.IsAny<double>(), It.IsAny<bool>()))                
+            cameraService.Setup(x => x.TakeExposure(It.IsAny<double>(), It.IsAny<bool>(), It.IsAny<bool>()))                
                 .ReturnsAsync(true)
                 .Raises(x => x.OnExposureCompleted += null, true, new Exposure(800, 600, new int[0], 1, false));
 
